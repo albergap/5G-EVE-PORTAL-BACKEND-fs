@@ -1,6 +1,9 @@
 package com.uc3m.fs;
 
-import com.uc3m.fs.model.FileUploaded;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+
+import com.uc3m.fs.model.FileUploadRequest;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,8 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class FS_Controller {
 
 	@GetMapping(value = "portal/fs/download/{fileUuid}")
-	public ResponseEntity<String> download(@PathVariable(value = "fileUuid", required = true) String uuid) {
-		// BAD REQUEST, FORBIDDEN, NOT FOUND, CONFLICT, INTERNAL ERROR
+	public ResponseEntity<String> download(@NotBlank @PathVariable(value = "fileUuid", required = true) String uuid) {
+		// TO-DO: FORBIDDEN, NOT FOUND, CONFLICT, INTERNAL ERROR
 		try {
 			System.out.println("uuid = " + uuid);
 			return new ResponseEntity<>("Base64", HttpStatus.OK);
@@ -25,8 +28,8 @@ public class FS_Controller {
 	}
 
 	@PostMapping(value = "portal/fs/upload")
-	public ResponseEntity<Void> upload(@RequestBody(required = true) FileUploaded f) {
-		// BAD REQUEST, FORBIDDEN, NOT FOUND, CONFLICT, INTERNAL ERROR
+	public ResponseEntity<Void> upload(@Valid @RequestBody(required = true) FileUploadRequest f) {
+		// TO-DO: FORBIDDEN, NOT FOUND, CONFLICT, INTERNAL ERROR
 		try {
 			System.out.println("FileUploaded: " + f);
 			return new ResponseEntity<>(HttpStatus.ACCEPTED);

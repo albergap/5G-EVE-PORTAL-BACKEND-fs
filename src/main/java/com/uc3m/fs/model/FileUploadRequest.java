@@ -1,16 +1,22 @@
 package com.uc3m.fs.model;
 
-public class FileUploaded {
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
-	private String dzuuid, sites;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class FileUploadRequest {
+
+	@NotNull
+	@NotBlank
+	private String dzuuid;
+	@NotNull
+	@JsonProperty("List<site>")
+	private String sites;
+	@NotNull
 	private int dzchunkindex, dztotalfilesize, dzchunksize, dztotalchunkcount, dzchunkbyteoffset;
 
-	public FileUploaded() {
-		dzuuid = sites = "";
-		dzchunkindex = dztotalfilesize = dzchunksize = dztotalchunkcount = dzchunkbyteoffset = -1;
-	}
-
-	public FileUploaded(String dzuuid, String sites, int dzchunkindex, int dztotalfilesize, int dzchunksize,
+	public FileUploadRequest(String dzuuid, String sites, int dzchunkindex, int dztotalfilesize, int dzchunksize,
 			int dztotalchunkcount, int dzchunkbyteoffset) {
 		this.dzuuid = dzuuid;
 		this.sites = sites;
