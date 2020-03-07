@@ -1,5 +1,7 @@
 package com.uc3m.fs.model;
 
+import java.util.Arrays;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
@@ -12,11 +14,12 @@ public class FileUploadRequest {
 	private String dzuuid;
 	@NotNull
 	@JsonProperty("List<site>")
-	private String sites;
+	private String[] sites;
 	@NotNull
 	private int dzchunkindex, dztotalfilesize, dzchunksize, dztotalchunkcount, dzchunkbyteoffset;
 
-	public FileUploadRequest(String dzuuid, String sites, int dzchunkindex, int dztotalfilesize, int dzchunksize,
+	public FileUploadRequest(String dzuuid, String[] sites, int dzchunkindex, int dztotalfilesize,
+			int dzchunksize,
 			int dztotalchunkcount, int dzchunkbyteoffset) {
 		this.dzuuid = dzuuid;
 		this.sites = sites;
@@ -35,11 +38,11 @@ public class FileUploadRequest {
 		this.dzuuid = dzuuid;
 	}
 
-	public String getSites() {
+	public String[] getSites() {
 		return this.sites;
 	}
 
-	public void setSites(String sites) {
+	public void setSites(String[] sites) {
 		this.sites = sites;
 	}
 
@@ -85,10 +88,10 @@ public class FileUploadRequest {
 
 	@Override
 	public String toString() {
-		return "{" + "dzuuid='" + getDzuuid() + "'" + ", sites='" + getSites() + "'" + ", dzchunkindex='"
-				+ getDzchunkindex() + "'" + ", dztotalfilesize='" + getDztotalfilesize() + "'" + ", dzchunksize='"
-				+ getDzchunksize() + "'" + ", dztotalchunkcount='" + getDztotalchunkcount() + "'"
-				+ ", dzchunkbyteoffset='" + getDzchunkbyteoffset() + "'" + "}";
+		return "{dzuuid='" + getDzuuid() + "', sites=" + Arrays.toString(getSites()) + ", dzchunkindex='"
+				+ getDzchunkindex() + "', dztotalfilesize='" + getDztotalfilesize() + "', dzchunksize='"
+				+ getDzchunksize() + "', dztotalchunkcount='" + getDztotalchunkcount()
+				+ "', dzchunkbyteoffset='" + getDzchunkbyteoffset() + "'}";
 	}
 
 }

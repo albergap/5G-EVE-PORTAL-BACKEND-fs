@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class FS_Controller {
 
-	@GetMapping(value = "portal/fs/download/{fileUuid}")
+	@GetMapping(value = "fs/download/{fileUuid}")
 	public ResponseEntity<String> download(@NotBlank @PathVariable(value = "fileUuid", required = true) String uuid) {
 		// TO-DO: FORBIDDEN, NOT FOUND, CONFLICT, INTERNAL ERROR
 		try {
@@ -27,7 +27,7 @@ public class FS_Controller {
 		}
 	}
 
-	@PostMapping(value = "portal/fs/upload")
+	@PostMapping(value = "fs/upload")
 	public ResponseEntity<Void> upload(@Valid @RequestBody(required = true) FileUploadRequest f) {
 		// TO-DO: FORBIDDEN, NOT FOUND, CONFLICT, INTERNAL ERROR
 		try {
