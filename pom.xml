@@ -11,8 +11,8 @@
 	<groupId>com.uc3m</groupId>
 	<artifactId>fs</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>demo</name>
-	<description>Demo project for Spring Boot</description>
+	<name>FS</name>
+	<description>FS</description>
 
 	<properties>
 		<java.version>1.8</java.version>
@@ -34,6 +34,10 @@
 					<artifactId>junit-vintage-engine</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
 	</dependencies>
 

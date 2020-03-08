@@ -29,3 +29,5 @@ build/
 
 ### VS Code ###
 .vscode/
+
+FILES_DIR_LOCATION/
