@@ -1,0 +1,122 @@
+{
+	"info": {
+		"_postman_id": "cf124a39-0519-43c4-a958-1ceb2e5a1d80",
+		"name": "FS tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "download",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8091/fs/download/Enlaces.txt",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8091",
+					"path": [
+						"fs",
+						"download",
+						"Enlaces.txt"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "upload",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "multipart/form-data"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/Z:/Descargas/upload.zip"
+						},
+						{
+							"key": "dzuuid",
+							"value": "uuidPostman",
+							"type": "text"
+						},
+						{
+							"key": "List<site>",
+							"value": "s1, s2",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8091/fs/upload",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8091",
+					"path": [
+						"fs",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "upload web",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/Z:/Descargas/upload.txt"
+						},
+						{
+							"key": "dzuuid",
+							"value": "uuidPostmanWeb",
+							"type": "text"
+						},
+						{
+							"key": "List<site>",
+							"value": "[\"site1\", \"site2\"]",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8091/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8091",
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
