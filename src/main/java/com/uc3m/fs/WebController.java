@@ -54,9 +54,8 @@ public class WebController {
 	}
 
 	@PostMapping("/")
-	public String handleFileUpload(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes) {
-
-		storageService.store(file);
+	public String handleFileUpload(@RequestParam("file") MultipartFile file, @RequestParam(required = true) String dzuuid, RedirectAttributes redirectAttributes) {
+		storageService.store(file, dzuuid);
 		redirectAttributes.addFlashAttribute("message",
 				"You successfully uploaded " + file.getOriginalFilename() + "!");
 

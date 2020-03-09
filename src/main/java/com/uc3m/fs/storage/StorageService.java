@@ -29,13 +29,17 @@ public class StorageService {
 		this.rootLocation = Paths.get(Config.FILES_DIR_LOCATION);
 	}
 
-	public void store(MultipartFile file) throws StorageException {
+	public void store(MultipartFile file, String name) throws StorageException {
 		try {
 			if (file.isEmpty()) throw new StorageException("Failed to store empty file " + file.getOriginalFilename());
-			Files.copy(file.getInputStream(), this.rootLocation.resolve(file.getOriginalFilename()));
+			Files.copy(file.getInputStream(), this.rootLocation.resolve(name));
 		} catch (Exception e) {
 			throw new StorageException("Failed to store file " + file.getOriginalFilename(), e);
 		}
+	}
+
+	public void store(MultipartFile file) throws StorageException {
+		store(file, file.getOriginalFilename());
 	}
 
 	public Stream<Path> loadAll() {
