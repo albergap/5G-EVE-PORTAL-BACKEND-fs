@@ -5,8 +5,8 @@ Tables of 5G_EVE - TFG.pdf
 - Path/download/{fileUuid}: Table 29
 
 ## Tests
-- GET /: list of all uploaded files and form for upload
-- POST /: RequestParam file and dzuuid
+- GET /: list of all uploaded files downloadables and form for upload
+- POST /: upload file *multipart/form-data* `file` and `dzuuid`
 
 
 # Configurations
