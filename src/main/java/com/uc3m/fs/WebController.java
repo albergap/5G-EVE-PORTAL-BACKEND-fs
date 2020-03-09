@@ -1,6 +1,7 @@
 package com.uc3m.fs;
 
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +56,11 @@ public class WebController {
 
 	@PostMapping("/")
 	public String handleFileUpload(@RequestParam("file") MultipartFile file, @RequestParam(required = true) String dzuuid, RedirectAttributes redirectAttributes) {
-		storageService.store(file, dzuuid);
+		try {
+			storageService.store(file, dzuuid);
+		} catch (FileAlreadyExistsException e) {
+			e.printStackTrace();
+		}
 		redirectAttributes.addFlashAttribute("message",
 				"You successfully uploaded " + file.getOriginalFilename() + "!");
 

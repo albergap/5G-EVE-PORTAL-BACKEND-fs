@@ -29,16 +29,22 @@ public class StorageService {
 		this.rootLocation = Paths.get(Config.FILES_DIR_LOCATION);
 	}
 
-	public void store(MultipartFile file, String name) throws StorageException {
+	public void store(MultipartFile file, String name) throws StorageException, FileAlreadyExistsException {
 		try {
 			if (file.isEmpty()) throw new StorageException("Failed to store empty file " + file.getOriginalFilename());
-			Files.copy(file.getInputStream(), this.rootLocation.resolve(name));
+
+			Path path = rootLocation.resolve(name);
+			if (Files.exists(path)) throw new FileAlreadyExistsException("");
+
+			Files.copy(file.getInputStream(), path);
+		} catch (FileAlreadyExistsException e) {
+			throw new FileAlreadyExistsException("File " + name + " already exists");
 		} catch (Exception e) {
 			throw new StorageException("Failed to store file " + file.getOriginalFilename(), e);
 		}
 	}
 
-	public void store(MultipartFile file) throws StorageException {
+	public void store(MultipartFile file) throws StorageException, FileAlreadyExistsException {
 		store(file, file.getOriginalFilename());
 	}
 
