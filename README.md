@@ -6,7 +6,9 @@ Tables of 5G_EVE - TFG.pdf
 
 ## Tests
 - GET /: list of all uploaded files downloadables and form for upload
-- POST /: upload file *multipart/form-data* `file` and `dzuuid`
+- GET /download_file/{fileUuid}: download file
+- GET /download/{fileUuid}: download file in Base64
+- POST /upload: upload file *multipart/form-data* `file`, `dzuuid` and `List<site>`
 
 
 # Configurations
