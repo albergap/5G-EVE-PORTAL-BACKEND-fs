@@ -4,6 +4,9 @@
 	<div th:if="${file}">
 		<h2 th:text="${file}"></h2>
 	</div>
+	<div th:if="${error_message}" style="color:red;">
+		<h2 th:text="${error_message}"></h2>
+	</div>
 
 	<div>
 		<form method="POST" enctype="multipart/form-data" action="/upload">

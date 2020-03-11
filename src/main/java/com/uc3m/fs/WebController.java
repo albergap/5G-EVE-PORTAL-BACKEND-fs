@@ -1,7 +1,6 @@
 package com.uc3m.fs;
 
 import java.io.IOException;
-import java.nio.file.FileAlreadyExistsException;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,14 +85,15 @@ public class WebController {
 		redirectAttributes.addFlashAttribute("message",
 				"You successfully uploaded: " + result);*/
 
+		String msg = null;
 		try {
 			storageService.store(file, dzuuid);
-		} catch (FileAlreadyExistsException e) {
-			e.printStackTrace();
+			msg = "You successfully uploaded " + file.getOriginalFilename() + "!";
+		} catch (Exception e) {
+			msg = "Error: " + e.getMessage();
+		} finally {
+			if (msg != null) redirectAttributes.addFlashAttribute("error_message", msg);
 		}
-		redirectAttributes.addFlashAttribute("message",
-				"You successfully uploaded " + file.getOriginalFilename() + "!");
-
 		return "redirect:/";
 	}
 
