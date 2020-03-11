@@ -63,14 +63,12 @@ public class FS_Controller {
 			if (uuid == null || uuid.isEmpty())
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
-			if (sites != null) {
-				for (int i = 0; i < sites.length; i++)
-					if (sites[i].isEmpty())
-						return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-			}
+			for (int i = 0; i < sites.length; i++)
+				if (sites[i].isEmpty())
+					return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
 			storageService.store(file, uuid);
-			return new ResponseEntity<>("Successfully uploaded", HttpStatus.ACCEPTED);
+			return new ResponseEntity<>(HttpStatus.ACCEPTED);
 		} catch (FileAlreadyExistsException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
 		} catch (Exception e) {
