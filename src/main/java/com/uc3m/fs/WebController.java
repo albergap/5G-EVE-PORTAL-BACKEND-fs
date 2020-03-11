@@ -14,15 +14,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.uc3m.fs.storage.StorageService;
 
 @Controller
 public class WebController {
+
+	private static final String WS = "http://localhost:8091" + Config.PATH;
 
 	private final StorageService storageService;
 
@@ -33,29 +34,58 @@ public class WebController {
 
 	@GetMapping(value = "/")
 	public String listUploadedFiles(Model model) throws IOException {
-
 		model.addAttribute("files",
 				storageService.loadAll()
-				.map(path -> MvcUriComponentsBuilder
-						.fromMethodName(WebController.class, "serveFile", path.getFileName().toString()).build()
-						.toUri().toString())
+				.map(path -> path.getFileName().toString())
 				.collect(Collectors.toList()));
 
 		return "uploadForm";
 	}
 
-	@GetMapping("/files/{filename:.+}")
-	@ResponseBody
-	public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
-
-		Resource file = storageService.loadAsResource(filename);
+	@GetMapping("/download_file/{fileUuid}")
+	public ResponseEntity<Resource> downloadFile(@PathVariable(value = "fileUuid", required = true) String uuid) {
+		Resource file = storageService.loadAsResource(uuid);
 		return ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")
 				.body(file);
 	}
 
-	@PostMapping("/")
-	public String handleFileUpload(@RequestParam("file") MultipartFile file, @RequestParam(required = true) String dzuuid, RedirectAttributes redirectAttributes) {
+
+	@GetMapping("/download/{fileUuid}")
+	public String download(
+			@PathVariable(value = "fileUuid", required = true) String uuid,
+			RedirectAttributes redirectAttributes) {
+
+		RestTemplate restTemplate = new RestTemplate();
+		String result = restTemplate.getForObject(WS + "download/" + uuid, String.class);
+
+		redirectAttributes.addFlashAttribute("file", "File: " + result);
+		return "redirect:/";
+	}
+
+	@PostMapping("/upload")
+	public String upload(
+			@RequestParam("file") MultipartFile file,
+			@RequestParam(required = true) String dzuuid,
+			@RequestParam(name = "List<site>", required = true) String[] sites,
+			RedirectAttributes redirectAttributes) throws IOException {
+
+		/*HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+		MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+		body.add("file", new FileSystemResource(new File(file.getOriginalFilename())));
+		body.add("dzuuid", dzuuid);
+		body.add("List<site>", sites);
+
+		HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+		RestTemplate restTemplate = new RestTemplate();
+		ResponseEntity<String> result = restTemplate.postForEntity(WS + "upload", requestEntity, String.class);
+
+		redirectAttributes.addFlashAttribute("message",
+				"You successfully uploaded: " + result);*/
+
 		try {
 			storageService.store(file, dzuuid);
 		} catch (FileAlreadyExistsException e) {

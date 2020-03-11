@@ -40,7 +40,7 @@ public class StorageService {
 		} catch (FileAlreadyExistsException e) {
 			throw new FileAlreadyExistsException("File " + name + " already exists");
 		} catch (Exception e) {
-			throw new StorageException("Failed to store file " + file.getOriginalFilename(), e);
+			throw new StorageException("Failed to store file: " + name, e);
 		}
 	}
 
@@ -56,7 +56,6 @@ public class StorageService {
 		} catch (IOException e) {
 			throw new StorageException("Failed to read stored files", e);
 		}
-
 	}
 
 	public Path load(String filename) {
@@ -69,10 +68,8 @@ public class StorageService {
 			Resource resource = new UrlResource(file.toUri());
 			if(resource.exists() || resource.isReadable()) {
 				return resource;
-			}
-			else {
-				throw new StorageFileNotFoundException("Could not read file: " + filename);
-
+			} else {
+				throw new StorageFileNotFoundException("File not found: " + filename);
 			}
 		} catch (MalformedURLException e) {
 			throw new StorageFileNotFoundException("Could not read file: " + filename, e);

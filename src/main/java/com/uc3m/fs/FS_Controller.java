@@ -38,10 +38,11 @@ public class FS_Controller {
 
 	@GetMapping(value = Config.PATH + "download/{fileUuid}")
 	public ResponseEntity<String> download(@PathVariable(value = "fileUuid", required = true) String uuid) {
-		// TODO: FORBIDDEN, CONFLICT
 		try {
 			String b64 = Base64.getEncoder()
-					.encodeToString(StreamUtils.copyToByteArray(storageService.loadAsResource(uuid).getInputStream()));
+					.encodeToString(StreamUtils.copyToByteArray(
+							storageService.loadAsResource(uuid).getInputStream()
+							));
 			return new ResponseEntity<>(b64, HttpStatus.OK);
 		} catch (StorageFileNotFoundException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
@@ -52,12 +53,12 @@ public class FS_Controller {
 
 	@PostMapping(value = Config.PATH + "upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@ResponseBody
-	public ResponseEntity<String> upload(@RequestPart("file") MultipartFile file,
-			@RequestParam(required = true) String dzuuid,
+	public ResponseEntity<String> upload(
+			@RequestPart("file") MultipartFile file,
+			@RequestParam(name = "dzuuid", required = true) String uuid,
 			@RequestParam(name = "List<site>", required = true) String[] sites) {
-		// TODO: FORBIDDEN, NOT FOUND
 		try {
-			if (dzuuid == null || dzuuid.isEmpty())
+			if (uuid == null || uuid.isEmpty())
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
 			if (sites != null) {
@@ -66,8 +67,8 @@ public class FS_Controller {
 						return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
 
-			storageService.store(file, dzuuid);
-			return new ResponseEntity<>(HttpStatus.ACCEPTED);
+			storageService.store(file, uuid);
+			return new ResponseEntity<>("Successfully uploaded", HttpStatus.ACCEPTED);
 		} catch (FileAlreadyExistsException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
 		} catch (Exception e) {
@@ -77,11 +78,6 @@ public class FS_Controller {
 
 	@ExceptionHandler(MaxUploadSizeExceededException.class)
 	public ResponseEntity<?> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException exc) {
-		return ResponseEntity.badRequest().build();
-	}
-
-	@ExceptionHandler(StorageFileNotFoundException.class)
-	public ResponseEntity<?> handleStorageFileNotFound(StorageFileNotFoundException exc) {
 		return ResponseEntity.badRequest().build();
 	}
 
