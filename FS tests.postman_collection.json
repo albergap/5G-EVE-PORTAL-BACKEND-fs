@@ -8,10 +8,20 @@
 		{
 			"name": "download",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI1bzFUZlpMVEpWMHB1TVRGbmY2X0FUWnJqbVdub2xxNEdSbGlnczB2ODQ4In0.eyJqdGkiOiI3NTUwMjZlNy1kYmJmLTQxZWQtYjhkOS1lNWQ4OWZkZDljNDkiLCJleHAiOjE1ODU2NTkyNjgsIm5iZiI6MCwiaWF0IjoxNTg1NjU4OTY4LCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODAvYXV0aC9yZWFsbXMvNWdldmUiLCJhdWQiOlsiUkJBQyIsImFjY291bnQiXSwic3ViIjoiMWJhZGIzY2UtMDQ3Ni00OGNlLWI5MGYtZGU2ZGQ2OTU0OTJkIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoiUkJBQyIsImF1dGhfdGltZSI6MCwic2Vzc2lvbl9zdGF0ZSI6IjExN2NiYjZiLTkyMjctNDQwMy04NjZlLTAyMTVjMmU4YWM1YSIsImFjciI6IjEiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiRlNfdXNlciIsIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJhY2NvdW50Ijp7InJvbGVzIjpbIm1hbmFnZS1hY2NvdW50IiwibWFuYWdlLWFjY291bnQtbGlua3MiLCJ2aWV3LXByb2ZpbGUiXX19LCJzY29wZSI6Imdvb2Qtc2VydmljZSBwcm9maWxlIGVtYWlsIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJ1c2VyIHVzZXIiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJ1c2VyIiwiZ2l2ZW5fbmFtZSI6InVzZXIiLCJmYW1pbHlfbmFtZSI6InVzZXIiLCJlbWFpbCI6InVzZXJAbWFpbC5jb20ifQ.cx--QhlA9gjQ8I1BqGke6v3ZlkJhK_0LfLAxYdZIVcACc7JLU-9Vw1aCDV7R7J2aIa6P8iOg67AqkQTpE-GEGP8NYlTT0q3O6pcnxvZOSY1B_39YiPMH4RRlkSS9oEAkHrB_PW-LZHn3WDJtP3-XH3NV_AFLB1FGAhKC2wXSKKPvkGRe_5uj3HWT2VLbL_qG7lnOs6QB4fuU31m3zODuLnR3wMftbh__IaErms_lOC_7disZHCrBz1eWTL1sJ4pXe8zbf-lXBgEmnH614GNpZ3QRxLMLe-L8OAu3leedYIinU3pbQpKCAsuWNiJ7WITSi1bnXhcoXud1NosAa2HITA",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8091/fs/download/Enlaces.txt",
+					"raw": "http://localhost:8091/fs/download/uuidPostman",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -20,7 +30,31 @@
 					"path": [
 						"fs",
 						"download",
-						"Enlaces.txt"
+						"uuidPostman"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "download no auth",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8091/fs/download/uuidPostman",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8091",
+					"path": [
+						"fs",
+						"download",
+						"uuidPostman"
 					]
 				}
 			},
@@ -33,6 +67,11 @@
 				"header": [
 					{
 						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
 						"type": "text",
 						"value": "multipart/form-data"
 					}
@@ -43,17 +82,18 @@
 						{
 							"key": "file",
 							"type": "file",
-							"src": "/Z:/Descargas/upload.zip"
+							"src": "/Z:/TFG/upload.zip"
 						},
 						{
 							"key": "dzuuid",
-							"value": "uuidPostman",
+							"value": "",
 							"type": "text"
 						},
 						{
 							"key": "List<site>",
-							"value": "s1, s2",
-							"type": "text"
+							"value": "s1,s2",
+							"type": "text",
+							"disabled": true
 						}
 					]
 				},

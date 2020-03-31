@@ -4,14 +4,12 @@ import java.nio.file.FileAlreadyExistsException;
 import java.util.Base64;
 
 import javax.validation.ConstraintViolationException;
-import javax.validation.constraints.NotEmpty;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StreamUtils;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,7 +27,6 @@ import com.uc3m.fs.storage.exceptions.StorageFileNotFoundException;
 
 @RestController
 @RequestMapping(Config.PATH)
-@Validated
 public class FS_Controller {
 	// Upload a MultipartFile (without chunks):
 	// https://spring.io/guides/gs/uploading-files
@@ -63,7 +60,7 @@ public class FS_Controller {
 	@ResponseBody
 	public ResponseEntity<Void> upload(
 			@RequestPart(name = "file", required = true) MultipartFile file,
-			@RequestParam(name = "dzuuid", required = true) @NotEmpty String uuid,
+			@RequestParam(name = "dzuuid", required = true) String uuid,
 			@RequestParam(name = "List<site>", required = false) String[] sites) {
 		try {
 			if (uuid == null || uuid.isEmpty())
