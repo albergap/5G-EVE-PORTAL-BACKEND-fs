@@ -17,8 +17,13 @@ import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 
+import com.uc3m.fs.Config;
+
 @KeycloakConfiguration
 public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
+
+	@Autowired
+	public KeycloakClientRequestFactory keycloakClientRequestFactory;
 
 	@Autowired
 	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
@@ -38,9 +43,6 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 		return new KeycloakSpringBootConfigResolver();
 	}
 
-	@Autowired
-	public KeycloakClientRequestFactory keycloakClientRequestFactory;
-
 	@Bean
 	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 	public KeycloakRestTemplate keycloakRestTemplate(){
@@ -48,11 +50,10 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 	}
 
 	@Override
-	protected void configure(HttpSecurity http) throws Exception
-	{
+	protected void configure(HttpSecurity http) throws Exception {
 		super.configure(http);
-		http.authorizeRequests()
-		.antMatchers(Keycloak.URL_PATTERN).hasRole(Keycloak.ROLE)
+		http.csrf().disable().authorizeRequests()
+		.antMatchers(Config.PATH + "**").hasRole(Config.KEYCLOAK_ROLE)
 		.anyRequest().authenticated();
 	}
 

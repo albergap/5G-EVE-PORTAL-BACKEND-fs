@@ -1,5 +1,5 @@
 # Interface
-Bearer token required
+**Bearer token required**
 ## Main
 Tables of 5G_EVE - TFG.pdf
 - Path/upload: File *multipart/form-data* `file`; request parameters `dzuuid` and `List<site>`
@@ -14,16 +14,15 @@ Tables of 5G_EVE - TFG.pdf
 
 # Configurations
 ## Config.java
-- Directory for uploaded files
-- Parent path of endpoint
-- URL of keycloak
-
-## Keycloak.java
-- Role of the user
+- `FILES_DIR_LOCATION`: Directory for uploaded files
+- `PATH`: Parent path of endpoint
+- `KEYCLOAK_URL_PATTERN`: URL of keycloak
+- `KEYCLOAK_ROLE`: role allowed
 
 ## src/main/resources/application.properties
-- Port
-- Max file size for uploads
-- Max file size for downloads
-- Keycloak realm
-- Keycloak resource
+- `server.port`: Port
+- `spring.servlet.multipart`.max-file-size: Max file size for uploads
+- `spring.servlet.multipart`.max-request-size: Max file size for downloads
+- `keycloak.auth-server-url`: Keycloak URL
+- `keycloak.realm`: Keycloak realm
+- `keycloak.resource`: Keycloak resource

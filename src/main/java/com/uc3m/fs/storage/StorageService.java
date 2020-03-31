@@ -1,5 +1,6 @@
 package com.uc3m.fs.storage;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.FileAlreadyExistsException;
@@ -36,7 +37,7 @@ public class StorageService {
 			Path path = rootLocation.resolve(name);
 			if (Files.exists(path)) throw new FileAlreadyExistsException("");
 
-			Files.copy(file.getInputStream(), path);
+			file.transferTo(new File(path.toUri()));
 		} catch (FileAlreadyExistsException e) {
 			throw new FileAlreadyExistsException("File " + name + " already exists");
 		} catch (Exception e) {

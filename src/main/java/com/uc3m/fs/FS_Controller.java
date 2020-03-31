@@ -28,10 +28,6 @@ import com.uc3m.fs.storage.exceptions.StorageFileNotFoundException;
 @RestController
 @RequestMapping(Config.PATH)
 public class FS_Controller {
-	// Upload a MultipartFile (without chunks):
-	// https://spring.io/guides/gs/uploading-files
-	// Upload a file in chunks:
-	// https://stackoverflow.com/questions/26964688/multipart-file-upload-using-spring-rest-template-spring-web-mvc
 
 	private final StorageService storageService;
 
