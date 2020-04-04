@@ -6,91 +6,129 @@
 	},
 	"item": [
 		{
-			"name": "download",
-			"protocolProfileBehavior": {
-				"disabledSystemHeaders": {
-					"connection": true
+			"name": "login user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "de3bb494-195a-4365-a718-09c536a504d4",
+						"exec": [
+							"pm.environment.set('access_token_user', \"Bearer \" + pm.response.json().access_token)"
+						],
+						"type": "text/javascript"
+					}
 				}
-			},
+			],
 			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI1bzFUZlpMVEpWMHB1TVRGbmY2X0FUWnJqbVdub2xxNEdSbGlnczB2ODQ4In0.eyJqdGkiOiIyNGVhNjQyMi03NmRjLTRkZGMtYmFkNi04NmRlZWUwMDdkOWYiLCJleHAiOjE1ODU2NzA4MTAsIm5iZiI6MCwiaWF0IjoxNTg1NjcwNTEwLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODAvYXV0aC9yZWFsbXMvNWdldmUiLCJhdWQiOlsiUkJBQyIsImFjY291bnQiXSwic3ViIjoiMWJhZGIzY2UtMDQ3Ni00OGNlLWI5MGYtZGU2ZGQ2OTU0OTJkIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoiUkJBQyIsImF1dGhfdGltZSI6MCwic2Vzc2lvbl9zdGF0ZSI6ImQ3MTFkZDlmLWJlM2EtNDE4Mi04MWYzLWNlNDg4ZmU1YjA4ZCIsImFjciI6IjEiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJ1bWFfYXV0aG9yaXphdGlvbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoiZ29vZC1zZXJ2aWNlIHByb2ZpbGUgZW1haWwiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6InVzZXIgdXNlciIsInByZWZlcnJlZF91c2VybmFtZSI6InVzZXIiLCJnaXZlbl9uYW1lIjoidXNlciIsImZhbWlseV9uYW1lIjoidXNlciIsImVtYWlsIjoidXNlckBtYWlsLmNvbSJ9.L8LWwGHLY6SYAnN6kpZE6N6G6D4M0eF0nogJdnKZ8ST-rqK-fLPqZHF5ppreuj3gSvhz17SkyJhj51EMEK24w5D72BxdFCEgQ7DYTePP5_mnJGaBlCnQHuHlC4E_3AiKuMw8sKQ6SU1FLb3r51slDdcUNDqDSI-zjR-ZhVFCk03iN_dwhgHZ5qMiNB2WVmmB6Dqx1Xy7e_-C7vyAyjOulKy8vRzNf6QiKqZa0r21e_4NFgKMhEq_re7KEQD4lLARKgMnbnYALkiiSdIi-Bp02om3bYG4HVWbrSA2wNGhamNlTL65zMpcHTWLeYviZHNW62DwfoESibDDuf8mFGtv3g",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8091/fs/download/uuidPostman",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8091",
-					"path": [
-						"fs",
-						"download",
-						"uuidPostman"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "download no auth",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8091/fs/download/uuidPostman",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8091",
-					"path": [
-						"fs",
-						"download",
-						"uuidPostman"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "upload",
-			"protocolProfileBehavior": {
-				"disabledSystemHeaders": {
-					"connection": true
-				}
-			},
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI1bzFUZlpMVEpWMHB1TVRGbmY2X0FUWnJqbVdub2xxNEdSbGlnczB2ODQ4In0.eyJqdGkiOiIyNGVhNjQyMi03NmRjLTRkZGMtYmFkNi04NmRlZWUwMDdkOWYiLCJleHAiOjE1ODU2NzA4MTAsIm5iZiI6MCwiaWF0IjoxNTg1NjcwNTEwLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODAvYXV0aC9yZWFsbXMvNWdldmUiLCJhdWQiOlsiUkJBQyIsImFjY291bnQiXSwic3ViIjoiMWJhZGIzY2UtMDQ3Ni00OGNlLWI5MGYtZGU2ZGQ2OTU0OTJkIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoiUkJBQyIsImF1dGhfdGltZSI6MCwic2Vzc2lvbl9zdGF0ZSI6ImQ3MTFkZDlmLWJlM2EtNDE4Mi04MWYzLWNlNDg4ZmU1YjA4ZCIsImFjciI6IjEiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsib2ZmbGluZV9hY2Nlc3MiLCJ1bWFfYXV0aG9yaXphdGlvbiJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoiZ29vZC1zZXJ2aWNlIHByb2ZpbGUgZW1haWwiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmFtZSI6InVzZXIgdXNlciIsInByZWZlcnJlZF91c2VybmFtZSI6InVzZXIiLCJnaXZlbl9uYW1lIjoidXNlciIsImZhbWlseV9uYW1lIjoidXNlciIsImVtYWlsIjoidXNlckBtYWlsLmNvbSJ9.L8LWwGHLY6SYAnN6kpZE6N6G6D4M0eF0nogJdnKZ8ST-rqK-fLPqZHF5ppreuj3gSvhz17SkyJhj51EMEK24w5D72BxdFCEgQ7DYTePP5_mnJGaBlCnQHuHlC4E_3AiKuMw8sKQ6SU1FLb3r51slDdcUNDqDSI-zjR-ZhVFCk03iN_dwhgHZ5qMiNB2WVmmB6Dqx1Xy7e_-C7vyAyjOulKy8vRzNf6QiKqZa0r21e_4NFgKMhEq_re7KEQD4lLARKgMnbnYALkiiSdIi-Bp02om3bYG4HVWbrSA2wNGhamNlTL65zMpcHTWLeYviZHNW62DwfoESibDDuf8mFGtv3g",
-							"type": "string"
-						}
-					]
-				},
 				"method": "POST",
 				"header": [
 					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\"email\": \"user@mail.com\",\n\"password\": \"pass\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8090/portal/catalogue/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8090",
+					"path": [
+						"portal",
+						"catalogue",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login admin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "9794934f-22cb-4ab0-b2f8-c818f38e694a",
+						"exec": [
+							"pm.environment.set('access_token_admin', \"Bearer \" + pm.response.json().access_token)"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\"email\": \"admin@mail.com\",\n\"password\": \"admin\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8090/portal/catalogue/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8090",
+					"path": [
+						"portal",
+						"catalogue",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "upload user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "81ec9860-bb63-41e2-bc95-6c59852609dc",
+						"exec": [
+							"pm.test(\"Debe dar 409\", function(){",
+							"    pm.response.to.have.status(409);",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"warning": "This is a duplicate header and will be overridden by the Content-Type header generated by Postman.",
 						"key": "Content-Type",
 						"value": "application/json",
 						"type": "text"
 					},
 					{
+						"warning": "This is a duplicate header and will be overridden by the Content-Type header generated by Postman.",
 						"key": "Content-Type",
 						"type": "text",
 						"value": "multipart/form-data"
+					},
+					{
+						"key": "Authorization",
+						"value": "{{access_token_user}}",
+						"type": "text"
 					}
 				],
 				"body": {
@@ -130,14 +168,43 @@
 			"response": []
 		},
 		{
-			"name": "upload web",
+			"name": "upload admin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "371076b6-7199-4cb0-bb88-45c80c0f1e89",
+						"exec": [
+							"pm.test(\"Debe dar 401\", function(){",
+							"    pm.response.to.have.status(401);",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
 			"request": {
 				"method": "POST",
 				"header": [
 					{
+						"warning": "This is a duplicate header and will be overridden by the Content-Type header generated by Postman.",
 						"key": "Content-Type",
 						"type": "text",
 						"value": "application/json"
+					},
+					{
+						"warning": "This is a duplicate header and will be overridden by the Content-Type header generated by Postman.",
+						"key": "Content-Type",
+						"type": "text",
+						"value": "multipart/form-data"
+					},
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": "{{access_token_admin}}"
 					}
 				],
 				"body": {
@@ -146,29 +213,123 @@
 						{
 							"key": "file",
 							"type": "file",
-							"src": "/Z:/Descargas/upload.txt"
+							"src": "/Z:/TFG/upload.zip"
 						},
 						{
 							"key": "dzuuid",
-							"value": "uuidPostmanWeb",
+							"value": "uuidPostman",
 							"type": "text"
 						},
 						{
 							"key": "List<site>",
-							"value": "[\"site1\", \"site2\"]",
-							"type": "text"
+							"value": "s1,s2",
+							"type": "text",
+							"disabled": true
 						}
 					]
 				},
 				"url": {
-					"raw": "http://localhost:8091/",
+					"raw": "http://localhost:8091/fs/upload",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8091",
 					"path": [
-						""
+						"fs",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "download user",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "15e66045-7b51-466d-9def-184f1ad7369e",
+						"exec": [
+							"pm.test(\"Debe dar 401\", function(){",
+							"    pm.response.to.have.status(401);",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"connection": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "{{access_token_user}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8091/fs/download/uuidPostman",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8091",
+					"path": [
+						"fs",
+						"download",
+						"uuidPostman"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "download admin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5c0bdecb-0e49-45f8-a14d-bcb30ce23ba1",
+						"exec": [
+							"pm.test(\"Debe dar 200\", function(){",
+							"    pm.response.to.have.status(200);",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"connection": true
+				}
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"type": "text",
+						"value": "{{access_token_admin}}"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8091/fs/download/uuidPostman",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8091",
+					"path": [
+						"fs",
+						"download",
+						"uuidPostman"
 					]
 				}
 			},
