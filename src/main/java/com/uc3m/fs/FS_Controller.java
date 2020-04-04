@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -26,7 +25,6 @@ import com.uc3m.fs.storage.StorageService;
 import com.uc3m.fs.storage.exceptions.StorageFileNotFoundException;
 
 @RestController
-@RequestMapping(Config.PATH)
 public class FS_Controller {
 
 	private final StorageService storageService;
@@ -36,7 +34,7 @@ public class FS_Controller {
 		this.storageService = storageService;
 	}
 
-	@GetMapping(value = "download/{fileUuid}")
+	@GetMapping(value = Config.PATH_DOWNLOAD + "/{fileUuid}")
 	public ResponseEntity<String> download(@PathVariable(value = "fileUuid", required = true) String uuid) {
 		try {
 			String b64 = Base64.getEncoder()
@@ -52,7 +50,7 @@ public class FS_Controller {
 		}
 	}
 
-	@PostMapping(value = "upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PostMapping(value = Config.PATH_UPLOAD, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@ResponseBody
 	public ResponseEntity<Void> upload(
 			@RequestPart(name = "file", required = true) MultipartFile file,
