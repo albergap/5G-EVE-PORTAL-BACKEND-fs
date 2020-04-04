@@ -5,24 +5,36 @@ Tables of 5G_EVE - TFG.pdf
 - Path/upload: File *multipart/form-data* `file`; request parameters `dzuuid` and `List<site>`
 - Path/download/{fileUuid}: Table 29
 
-## Tests
-- GET /: list of all uploaded files downloadables and form for upload
-- GET /download_file/{fileUuid}: download file
-- GET /download/{fileUuid}: download file in Base64
-- POST /upload: upload file *multipart/form-data* `file`, `dzuuid` and `List<site>`
-
 
 # Configurations
 ## Config.java
-- `FILES_DIR_LOCATION`: Directory for uploaded files
-- `PATH`: Parent path of endpoint
-- `KEYCLOAK_URL_PATTERN`: URL of keycloak
-- `KEYCLOAK_ROLE`: role allowed
+- `FILES_DIR_LOCATION`: directory for uploaded files
+- `PARENT_PATH`: parent path of endpoint
+- `PATH_DOWNLOAD`: path of download URL
+- `PATH_UPLOAD`: path of upload URL
 
 ## src/main/resources/application.properties
-- `server.port`: Port
+- `server.port`: port
 - `spring.servlet.multipart`.max-file-size: Max file size for uploads
 - `spring.servlet.multipart`.max-request-size: Max file size for downloads
 - `keycloak.auth-server-url`: Keycloak URL
 - `keycloak.realm`: Keycloak realm
-- `keycloak.resource`: Keycloak resource
+- `keycloak.resource`: Keycloak resource (client)
+- `keycloak.credentials.secret`: secret of Keycloak resource (client)
+
+
+# Keycloak objects
+    Tutorial: https://medium.com/@ravthiru/rest-service-protected-using-keycloak-authorization-services-a6ad2d8ecb9f
+
+> {2} means: 2, for download and upload
+
+- Client (FS)
+ - Access Type: confidential
+ - Authorization Enabled: ON
+ - Authorization Tab:
+   - Resources: {2}
+   - Authorization Scopes: {2}
+   - Policies: {2}, for roles
+   - Permissions: {2}
+- Roles: {2}
+- Users: {2}, with previous roles
