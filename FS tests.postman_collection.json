@@ -99,8 +99,8 @@
 					"script": {
 						"id": "81ec9860-bb63-41e2-bc95-6c59852609dc",
 						"exec": [
-							"pm.test(\"Must be 401 Unauthorized\", function(){",
-							"    pm.response.to.have.status(401);",
+							"pm.test(\"Must be 403 Forbidden\", function(){",
+							"    pm.response.to.have.status(403);",
 							"})"
 						],
 						"type": "text/javascript"
@@ -171,8 +171,7 @@
 						"id": "81ec9860-bb63-41e2-bc95-6c59852609dc",
 						"exec": [
 							"pm.test(\"Must be 200 OK or 409 Conflict\", function(){",
-							"    pm.response.to.have.status(200);",
-							"    pm.response.to.have.status(409);",
+							"    pm.expect(pm.response.code).to.be.oneOf([200,409]);",
 							"})"
 						],
 						"type": "text/javascript"
@@ -323,8 +322,8 @@
 					"script": {
 						"id": "15e66045-7b51-466d-9def-184f1ad7369e",
 						"exec": [
-							"pm.test(\"Must be 401 Unauthorized\", function(){",
-							"    pm.response.to.have.status(401);",
+							"pm.test(\"Must be 403 Forbidden\", function(){",
+							"    pm.response.to.have.status(403);",
 							"})"
 						],
 						"type": "text/javascript"
