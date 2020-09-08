@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.ConstraintViolationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,9 +37,11 @@ public class FS_Controller {
 		this.storageService = storageService;
 	}
 
+	@RolesAllowed({"admin", "user"})
 	@GetMapping(value = Config.PATH_DOWNLOAD + "/{fileUuid}")
 	public ResponseEntity<String> download(@PathVariable(value = "fileUuid", required = true) String uuid) {
 		try {
+			// TODO verify authority to that file
 			String b64 = Base64.getEncoder()
 					.encodeToString(StreamUtils.copyToByteArray(
 							storageService.loadAsResource(uuid).getInputStream()
@@ -52,6 +55,7 @@ public class FS_Controller {
 		}
 	}
 
+	@RolesAllowed("user")
 	@PostMapping(value = Config.PATH_UPLOAD, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@ResponseBody
 	public ResponseEntity<Void> upload(
@@ -78,7 +82,8 @@ public class FS_Controller {
 		}
 	}
 
-	@GetMapping(value = Config.LIST_FOR_USER)
+	@RolesAllowed({"admin", "user"})
+	@GetMapping(value = Config.PATH_LIST_FOR_USER)
 	public ResponseEntity<List<String>> list_for_user() {
 		try {
 			List<String> l=new ArrayList<String>();
