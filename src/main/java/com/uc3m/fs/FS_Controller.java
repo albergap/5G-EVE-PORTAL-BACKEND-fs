@@ -1,7 +1,9 @@
 package com.uc3m.fs;
 
 import java.nio.file.FileAlreadyExistsException;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 
 import javax.validation.ConstraintViolationException;
 
@@ -70,6 +72,23 @@ public class FS_Controller {
 			return new ResponseEntity<>(HttpStatus.ACCEPTED);
 		} catch (FileAlreadyExistsException e) {
 			return new ResponseEntity<>(HttpStatus.CONFLICT);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@GetMapping(value = Config.LIST_FOR_USER)
+	public ResponseEntity<List<String>> list_for_user() {
+		try {
+			List<String> l=new ArrayList<String>();
+			l.add("aaa");
+			l.add("bbb");
+			l.add("cccccc");
+			l.add("d");
+			return new ResponseEntity<>(l, HttpStatus.OK);
+		} catch (StorageFileNotFoundException e) {
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
