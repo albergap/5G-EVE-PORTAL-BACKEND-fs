@@ -42,6 +42,7 @@ public class FS_Controller {
 	public ResponseEntity<String> download(@PathVariable(value = "fileUuid", required = true) String uuid) {
 		try {
 			// TODO verify authority to that file
+			// https://spring.io/guides/gs/accessing-data-jpa/
 			String b64 = Base64.getEncoder()
 					.encodeToString(StreamUtils.copyToByteArray(
 							storageService.loadAsResource(uuid).getInputStream()
@@ -55,7 +56,7 @@ public class FS_Controller {
 		}
 	}
 
-	@RolesAllowed("user")
+	@RolesAllowed({"user"})
 	@PostMapping(value = Config.PATH_UPLOAD, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@ResponseBody
 	public ResponseEntity<Void> upload(
@@ -63,6 +64,7 @@ public class FS_Controller {
 			@RequestParam(name = "dzuuid", required = true) String uuid,
 			@RequestParam(name = "List<site>", required = false) String[] sites) {
 		try {
+			// TODO add to database
 			if (uuid == null || uuid.isEmpty())
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
@@ -84,13 +86,29 @@ public class FS_Controller {
 
 	@RolesAllowed({"admin", "user"})
 	@GetMapping(value = Config.PATH_LIST_FOR_USER)
-	public ResponseEntity<List<String>> list_for_user() {
+	public ResponseEntity<List<String>> list_for_user() {// TODO
 		try {
 			List<String> l=new ArrayList<String>();
-			l.add("aaa");
-			l.add("bbb");
+			l.add("nombre");
+			l.add("uuidPostman");
 			l.add("cccccc");
-			l.add("d");
+			l.add("cccccc");
+			l.add("cccccc");
+			l.add("cccccc");
+			l.add("cccccc");
+			l.add("cccccc");
+			l.add("cccccc");
+			l.add("cccccc");
+			l.add("cccccc");
+			l.add("cccccc");
+			l.add("cccccc");
+			l.add("cccccc");
+			l.add("cccccc");
+			l.add("cccccc");
+			l.add("cccccc");
+			l.add("cccccc");
+			l.add("cccccc");
+			l.add("cccccc");
 			return new ResponseEntity<>(l, HttpStatus.OK);
 		} catch (StorageFileNotFoundException e) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
