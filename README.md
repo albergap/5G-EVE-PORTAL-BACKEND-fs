@@ -6,6 +6,29 @@ Tables of 5G_EVE - TFG.pdf
 - Path/download/{fileUuid}: Table 29
 
 
+# Keycloak
+    Tutorial: https://medium.com/@ravthiru/rest-service-protected-using-keycloak-authorization-services-a6ad2d8ecb9f
+
+- Client (FS)
+ - Access Type: confidential
+ - Authorization Enabled: ON
+ - Authorization Tab:
+   - Resources
+   - Authorization Scopes
+   - Policies
+   - Permissions
+- Roles
+- Users, with previous roles
+
+And fill [application.properties](## src/main/resources/application.properties)
+
+
+
+# Database
+PostgreSQL database and a role with permissions
+And fill [application.properties](## src/main/resources/application.properties)
+
+
 # Configurations
 ## Config.java
 - `FILES_DIR_LOCATION`: directory for uploaded files
@@ -17,24 +40,14 @@ Tables of 5G_EVE - TFG.pdf
 - `server.port`: port
 - `spring.servlet.multipart`.max-file-size: Max file size for uploads
 - `spring.servlet.multipart`.max-request-size: Max file size for downloads
+
+Keycloak:
 - `keycloak.auth-server-url`: Keycloak URL
 - `keycloak.realm`: Keycloak realm
 - `keycloak.resource`: Keycloak resource (client)
 - `keycloak.credentials.secret`: secret of Keycloak resource (client)
 
-
-# Keycloak objects
-    Tutorial: https://medium.com/@ravthiru/rest-service-protected-using-keycloak-authorization-services-a6ad2d8ecb9f
-
-> {2} means: 2, for download and upload
-
-- Client (FS)
- - Access Type: confidential
- - Authorization Enabled: ON
- - Authorization Tab:
-   - Resources: {2}
-   - Authorization Scopes: {2}
-   - Policies: {2}, for roles
-   - Permissions: {2}
-- Roles: {2}
-- Users: {2}, with previous roles
+Database:
+- `spring.datasource.url`: URL and DB name
+- `spring.datasource.username`: DB user
+- `spring.datasource.password`: DB password

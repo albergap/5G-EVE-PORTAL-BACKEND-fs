@@ -16,7 +16,7 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 @KeycloakConfiguration
 public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 
-	public static final String ROLE_SITE_MANAGER = "SiteManager", ROLE_USER = "user";
+	public static final String ROLE_SITE_MANAGER = "SiteManager", ROLE_USER = "ExperimentDeveloper";
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {

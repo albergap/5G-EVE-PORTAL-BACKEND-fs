@@ -62,12 +62,11 @@
 					]
 				},
 				"url": {
-					"raw": "http://localhost:8091/fs/upload",
+					"raw": "http://{{ip-port_fs}}/fs/upload",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"{{ip-port_fs}}"
 					],
-					"port": "8091",
 					"path": [
 						"fs",
 						"upload"
@@ -99,10 +98,10 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8091/fs/download/uuidPostman",
+					"raw": "http://{{ip-port_fs}}:8091/fs/download/uuidPostman",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"{{ip-port_fs}}"
 					],
 					"port": "8091",
 					"path": [
@@ -139,18 +138,18 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\"email\": \"admin@mail.com\",\n\"password\": \"admin\"\n}"
+					"raw": "{\n\"email\": \"new_admin@mail.com\",\n\"password\": \"passpass\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8090/portal/catalogue/login",
+					"raw": "http://{{ip-port_rbac}}:8090/portal/rbac/login",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"{{ip-port_rbac}}"
 					],
 					"port": "8090",
 					"path": [
 						"portal",
-						"catalogue",
+						"rbac",
 						"login"
 					]
 				}
@@ -219,10 +218,10 @@
 					]
 				},
 				"url": {
-					"raw": "http://localhost:8091/fs/upload",
+					"raw": "http://{{ip-port_fs}}:8091/fs/upload",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"{{ip-port_fs}}"
 					],
 					"port": "8091",
 					"path": [
@@ -257,15 +256,15 @@
 				"header": [
 					{
 						"key": "Authorization",
-						"type": "text",
-						"value": "{{access_token_admin}}"
+						"value": "{{access_token_admin}}",
+						"type": "text"
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8091/fs/download/uuidPostman",
+					"raw": "http://{{ip-port_fs}}:8091/fs/download/uuidPostman",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"{{ip-port_fs}}"
 					],
 					"port": "8091",
 					"path": [
@@ -303,10 +302,10 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8091/fs/list",
+					"raw": "http://{{ip-port_fs}}:8091/fs/list",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"{{ip-port_fs}}"
 					],
 					"port": "8091",
 					"path": [
@@ -342,18 +341,18 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\"email\": \"user@mail.com\",\n\"password\": \"pass\"\n}"
+					"raw": "{\n\"email\": \"new_user@mail.com\",\n\"password\": \"passpass\"\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8090/portal/catalogue/login",
+					"raw": "http://{{ip-port_rbac}}:8090/portal/rbac/login",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"{{ip-port_rbac}}"
 					],
 					"port": "8090",
 					"path": [
 						"portal",
-						"catalogue",
+						"rbac",
 						"login"
 					]
 				}
@@ -421,10 +420,10 @@
 					]
 				},
 				"url": {
-					"raw": "http://localhost:8091/fs/upload",
+					"raw": "http://{{ip-port_fs}}:8091/fs/upload",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"{{ip-port_fs}}"
 					],
 					"port": "8091",
 					"path": [
@@ -464,10 +463,10 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8091/fs/download/uuidPostman",
+					"raw": "http://{{ip-port_fs}}:8091/fs/download/uuidPostman",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"{{ip-port_fs}}"
 					],
 					"port": "8091",
 					"path": [
@@ -505,10 +504,10 @@
 					}
 				],
 				"url": {
-					"raw": "http://localhost:8091/fs/list",
+					"raw": "http://{{ip-port_fs}}:8091/fs/list",
 					"protocol": "http",
 					"host": [
-						"localhost"
+						"{{ip-port_fs}}"
 					],
 					"port": "8091",
 					"path": [

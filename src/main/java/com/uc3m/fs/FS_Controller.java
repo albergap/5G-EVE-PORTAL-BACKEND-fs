@@ -24,21 +24,27 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.uc3m.fs.storage.FileService;
 import com.uc3m.fs.storage.StorageService;
 import com.uc3m.fs.storage.exceptions.StorageFileNotFoundException;
 
 @RestController
 public class FS_Controller {
 
+	@Autowired
+	private FileService fileService;
 	private final StorageService storageService;
 
 	@Autowired
 	public FS_Controller(StorageService storageService) {
 		this.storageService = storageService;
 	}
+	@Autowired
+	public void setProductService(FileService fileService) {
+		this.fileService = fileService;
+	}
 
 	/**
-		https://spring.io/guides/gs/accessing-data-jpa/
 el usuario con rol SiteManager podrá listar y descargar aquellos ficheros (VMs)
 que tengan como site asociado el suyo, puede listar aquellas VMs que tengan
 que ser desplegadas en su site para saber los sites que administra un usuario existe funcionalidad en el RBAC
