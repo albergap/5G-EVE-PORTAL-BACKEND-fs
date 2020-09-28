@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class FileService {
 
+	private static final String SITE_SEPARATOR = ",", SITE_OPEN = "(", SITE_CLOSE = ")";
 	private FileRepository fileRepository;
 
 	@Autowired
@@ -30,10 +31,10 @@ public class FileService {
 	public File save(File file, String[] sites) {
 		StringBuilder s = new StringBuilder();
 		for (int i = 0; i < sites.length; i++) {
-			s.append(FileRepository.SITE_OPEN);
+			s.append(SITE_OPEN);
 			s.append(sites[i]);
-			s.append(FileRepository.SITE_CLOSE);
-			if (i!=sites.length-1) s.append(FileRepository.SITE_SEPARATOR);
+			s.append(SITE_CLOSE);
+			if (i!=sites.length-1) s.append(SITE_SEPARATOR);
 		}
 		file.setSites(s.toString());
 		fileRepository.save(file);
@@ -51,7 +52,7 @@ public class FileService {
 	}
 
 	public List<File> findBySite(String site) {
-		Optional<List<File>> o = fileRepository.findBySite(site);
+		Optional<List<File>> o = fileRepository.findBySitesContaining(SITE_OPEN + site + SITE_CLOSE);
 		if (o.isPresent()) return o.get();
 		return new ArrayList<>(0);
 	}

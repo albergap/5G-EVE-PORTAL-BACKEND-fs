@@ -2,6 +2,7 @@ package com.uc3m.fs.storage;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -14,6 +15,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.uc3m.fs.Config;
@@ -28,6 +30,13 @@ public class StorageService {
 	@Autowired
 	public StorageService() {
 		this.rootLocation = Paths.get(Config.FILES_DIR_LOCATION);
+	}
+
+	public byte[] readFile(String uuid) throws IOException {
+		InputStream is = loadAsResource(uuid).getInputStream();
+		byte[] fileString = StreamUtils.copyToByteArray(is);
+		is.close();
+		return fileString;
 	}
 
 	public void store(MultipartFile file, String name) throws StorageException, FileAlreadyExistsException {

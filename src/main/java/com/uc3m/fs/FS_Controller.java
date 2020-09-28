@@ -1,18 +1,17 @@
 package com.uc3m.fs;
 
-import java.io.InputStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,6 +23,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.uc3m.fs.keycloak.Util;
+import com.uc3m.fs.storage.File;
 import com.uc3m.fs.storage.FileService;
 import com.uc3m.fs.storage.StorageService;
 import com.uc3m.fs.storage.exceptions.StorageFileNotFoundException;
@@ -44,22 +45,27 @@ public class FS_Controller {
 		this.fileService = fileService;
 	}
 
-	/**
-el usuario con rol SiteManager podrá listar y descargar aquellos ficheros (VMs)
-que tengan como site asociado el suyo, puede listar aquellas VMs que tengan
-que ser desplegadas en su site para saber los sites que administra un usuario existe funcionalidad en el RBAC
-SecurityConfig.ROLE_SITE_MANAGER
-SecurityConfig.ROLE_USER
-	 */
-
 	@GetMapping(value = Config.PATH_DOWNLOAD + "/{fileUuid}")
-	public ResponseEntity<String> download(@PathVariable(value = "fileUuid", required = true) String uuid) {
+	public ResponseEntity<String> download(@PathVariable(value = "fileUuid", required = true) String uuid, HttpServletRequest request) {
 		try {
-			// TODO verify authority (SiteManager with his site and user author)
-			InputStream is = storageService.loadAsResource(uuid).getInputStream();
-			byte[] file = StreamUtils.copyToByteArray(is);
-			is.close();
-			String b64 = Base64.getEncoder().encodeToString(file);
+			File file = fileService.findByUuid(uuid);
+			// Keycloak
+			String userId = Util.getIdUser(request);
+			boolean accessByRole = false;
+			boolean userRole = Util.isUserRole(request), managerRole = Util.isManagerRole(request);
+
+			// Verify ownership
+			if (userRole && userId.equals(file.getOwner())) accessByRole = true;
+			// Verify manager permission
+			if (managerRole) {// TODO
+				// if file.getSites() contains user.managedSite -> OK
+				accessByRole = true;
+			}
+
+			if (!accessByRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+
+			// Read file and convert to B64
+			String b64 = Base64.getEncoder().encodeToString(storageService.readFile(uuid));
 			return new ResponseEntity<>(b64, HttpStatus.OK);
 		} catch (StorageFileNotFoundException e) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -74,10 +80,10 @@ SecurityConfig.ROLE_USER
 	public ResponseEntity<Void> upload(
 			@RequestPart(name = "file", required = true) MultipartFile file,
 			@RequestParam(name = "dzuuid", required = true) String uuid,
-			@RequestParam(name = "List<site>", required = false) String[] sites) {
+			@RequestParam(name = "List<site>", required = false) String[] sites,
+			HttpServletRequest request) {
 		try {
-			Thread.sleep(2000);
-			// TODO add to database
+			// Params validation
 			if (uuid == null || uuid.isEmpty())
 				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
@@ -87,42 +93,55 @@ SecurityConfig.ROLE_USER
 						return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
 
+			// Save file to DB
+			File f = new File(uuid, Util.getIdUser(request), "");
+			fileService.save(f, sites);
+
+			// Save file to persistence
 			storageService.store(file, uuid);
+
 			return new ResponseEntity<>(HttpStatus.ACCEPTED);
 		} catch (FileAlreadyExistsException e) {
 			return new ResponseEntity<>(HttpStatus.CONFLICT);
 		} catch (Exception e) {
+			fileService.delete(uuid);
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
 	@GetMapping(value = Config.PATH_LIST_FOR_USER)
-	public ResponseEntity<List<String>> list_for_user() {// TODO
+	public ResponseEntity<List<String>> list_for_user(HttpServletRequest request) {
 		try {
-			// TODO If SiteManager all his sites; If user only owned
-			List<String> l=new ArrayList<String>();
-			l.add("nombre");
-			l.add("uuidPostman");
-			l.add("cccccccccccccccccccccccc cccccccccccccccccccccccc cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc");
-			l.add("cccccc");
-			l.add("cccccc");
-			l.add("cccccc");
-			l.add("cccccc");
-			l.add("cccccc");
-			l.add("cccccc");
-			l.add("cccccc");
-			l.add("cccccc");
-			l.add("cccccc");
-			l.add("cccccc");
-			l.add("cccccc");
-			l.add("cccccc");
-			l.add("cccccc");
-			l.add("cccccc");
-			l.add("cccccc");
-			l.add("cccccc");
-			l.add("cccccc");
-			return new ResponseEntity<>(l, HttpStatus.OK);
+			List<File> files = new ArrayList<File>();
+			// Keycloak
+			String userId = Util.getIdUser(request);
+			boolean accessByRole = false;
+			boolean userRole = Util.isUserRole(request), managerRole = Util.isManagerRole(request);
+
+			// Add files owner
+			if (userRole) {
+				accessByRole = true;
+				files = fileService.findByOwner(userId);
+			}
+			// Add files of managed sites
+			if (managerRole) {
+				accessByRole = true;
+				String[] sites = new String[1];// TODO RBAC managed sites of user
+				sites[0] = "s1";
+				// Add all his sites // TODO only 1 query
+				for (String s : sites)
+					files.addAll(fileService.findBySite(s));
+			}
+
+			if (!accessByRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+
+			// Return result list
+			if (files.size() == 0) return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+			List<String> result = new ArrayList<String>(files.size());
+			for (File f : files) result.add(f.getUuid());
+			return new ResponseEntity<>(result, HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
