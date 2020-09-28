@@ -116,25 +116,20 @@ public class FS_Controller {
 			List<File> files = new ArrayList<File>();
 			// Keycloak
 			String userId = Util.getIdUser(request);
-			boolean accessByRole = false;
 			boolean userRole = Util.isUserRole(request), managerRole = Util.isManagerRole(request);
 
 			// Add files owner
 			if (userRole) {
-				accessByRole = true;
 				files = fileService.findByOwner(userId);
 			}
 			// Add files of managed sites
 			if (managerRole) {
-				accessByRole = true;
 				String[] sites = new String[1];// TODO RBAC managed sites of user
 				sites[0] = "s1";
 				// Add all his sites // TODO only 1 query
 				for (String s : sites)
 					files.addAll(fileService.findBySite(s));
 			}
-
-			if (!accessByRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
 			// Return result list
 			if (files.size() == 0) return new ResponseEntity<>(HttpStatus.NO_CONTENT);
