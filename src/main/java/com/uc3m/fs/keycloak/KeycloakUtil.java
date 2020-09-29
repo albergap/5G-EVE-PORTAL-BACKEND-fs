@@ -8,7 +8,7 @@ import org.keycloak.KeycloakPrincipal;
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
 import org.keycloak.representations.AccessToken;
 
-public class Util {
+public class KeycloakUtil {
 
 	public static final String ROLE_SITE_MANAGER = "SiteManager", ROLE_USER = "ExperimentDeveloper";
 

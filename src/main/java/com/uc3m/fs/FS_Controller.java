@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.uc3m.fs.keycloak.Util;
+import com.uc3m.fs.keycloak.KeycloakUtil;
+import com.uc3m.fs.rbac.RBACRestService;
 import com.uc3m.fs.storage.File;
 import com.uc3m.fs.storage.FileService;
 import com.uc3m.fs.storage.StorageService;
@@ -50,9 +52,9 @@ public class FS_Controller {
 		try {
 			File file = fileService.findByUuid(uuid);
 			// Keycloak
-			String userId = Util.getIdUser(request);
+			String userId = KeycloakUtil.getIdUser(request);
 			boolean accessByRole = false;
-			boolean userRole = Util.isUserRole(request), managerRole = Util.isManagerRole(request);
+			boolean userRole = KeycloakUtil.isUserRole(request), managerRole = KeycloakUtil.isManagerRole(request);
 
 			// Verify ownership
 			if (userRole && userId.equals(file.getOwner())) accessByRole = true;
@@ -94,7 +96,7 @@ public class FS_Controller {
 			}
 
 			// Save file to DB
-			File f = new File(uuid, Util.getIdUser(request), "");
+			File f = new File(uuid, KeycloakUtil.getIdUser(request), "");
 			fileService.save(f, sites);
 
 			// Save file to persistence
@@ -115,8 +117,8 @@ public class FS_Controller {
 		try {
 			List<File> files = new ArrayList<File>();
 			// Keycloak
-			String userId = Util.getIdUser(request);
-			boolean userRole = Util.isUserRole(request), managerRole = Util.isManagerRole(request);
+			String userId = KeycloakUtil.getIdUser(request);
+			boolean userRole = KeycloakUtil.isUserRole(request), managerRole = KeycloakUtil.isManagerRole(request);
 
 			// Add files owner
 			if (userRole) {
@@ -124,8 +126,8 @@ public class FS_Controller {
 			}
 			// Add files of managed sites
 			if (managerRole) {
-				String[] sites = new String[1];// TODO RBAC managed sites of user
-				sites[0] = "s1";
+				String[] sites = RBACRestService.call(request.getHeader(HttpHeaders.AUTHORIZATION));
+
 				// Add all his sites // TODO only 1 query
 				for (String s : sites)
 					files.addAll(fileService.findBySite(s));
