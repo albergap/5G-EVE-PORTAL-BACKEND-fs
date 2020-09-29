@@ -57,4 +57,12 @@ public class FileService {
 		return new ArrayList<>(0);
 	}
 
+	public List<File> findBySites(String[] sites) {
+		List<File> files = new ArrayList<>();
+		for (String s : sites)
+			files.addAll(findBySite(s));
+
+		return files;
+	}
+
 }

@@ -137,15 +137,13 @@ public class FS_Controller {
 
 			// Add files owner
 			if (userRole) {
-				files = fileService.findByOwner(userId);
+				files.addAll(fileService.findByOwner(userId));
 			}
 			// Add files of managed sites
 			if (managerRole) {
 				String[] sites = RBACRestService.getSitesOfUser(request.getHeader(HttpHeaders.AUTHORIZATION));
-
-				// Add all his sites // TODO only 1 query
-				for (String s : sites)
-					files.addAll(fileService.findBySite(s));
+				// Add all files with his sites
+				files.addAll(fileService.findBySites(sites));
 			}
 
 			// Return result list
