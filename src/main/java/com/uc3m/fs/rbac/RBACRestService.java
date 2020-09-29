@@ -12,7 +12,7 @@ import com.uc3m.fs.Config;
 
 public class RBACRestService {
 
-	public static String[] call(String bearerToken) throws Exception {
+	public static String[] getSitesOfUser(String bearerToken) throws Exception {
 		HttpHeaders headers = new HttpHeaders();
 		headers.add(HttpHeaders.AUTHORIZATION, bearerToken);
 		RestTemplate rest = new RestTemplate();

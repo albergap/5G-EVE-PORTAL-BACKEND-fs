@@ -4,6 +4,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolationException;
@@ -51,6 +52,8 @@ public class FS_Controller {
 	public ResponseEntity<String> download(@PathVariable(value = "fileUuid", required = true) String uuid, HttpServletRequest request) {
 		try {
 			File file = fileService.findByUuid(uuid);
+			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
 			// Keycloak
 			String userId = KeycloakUtil.getIdUser(request);
 			boolean accessByRole = false;
@@ -59,9 +62,21 @@ public class FS_Controller {
 			// Verify ownership
 			if (userRole && userId.equals(file.getOwner())) accessByRole = true;
 			// Verify manager permission
-			if (managerRole) {// TODO
-				// if file.getSites() contains user.managedSite -> OK
-				accessByRole = true;
+			if (managerRole) {
+				StringTokenizer tok = new StringTokenizer(file.getSites(), ",");
+				String[] sitesFile = new String[tok.countTokens()];
+				for (int i = 0; i < sitesFile.length; i++) {
+					String s = (String) tok.nextElement();
+					sitesFile[i] = s.substring(1, s.length()-1);
+				}
+
+				String[] sitesUser = RBACRestService.getSitesOfUser(request.getHeader(HttpHeaders.AUTHORIZATION));
+
+				for (int i = 0; i < sitesFile.length && !accessByRole; i++) {
+					// If a site is managed -> access
+					for (int j = 0; j < sitesUser.length && !accessByRole; j++)
+						if (sitesFile[i].equals(sitesUser[j])) accessByRole = true;
+				}
 			}
 
 			if (!accessByRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
@@ -126,7 +141,7 @@ public class FS_Controller {
 			}
 			// Add files of managed sites
 			if (managerRole) {
-				String[] sites = RBACRestService.call(request.getHeader(HttpHeaders.AUTHORIZATION));
+				String[] sites = RBACRestService.getSitesOfUser(request.getHeader(HttpHeaders.AUTHORIZATION));
 
 				// Add all his sites // TODO only 1 query
 				for (String s : sites)
