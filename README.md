@@ -6,8 +6,8 @@ Tables of 5G_EVE - TFG.pdf
   HttpStatus.FORBIDDEN:
   - if a ExperimentDeveloper tries to download a file not owned
   - if a SiteManager tries to download a file not managed
-- Path/download/{fileUuid}: Table 29
-- Path/list: list files for user:
+- Path/download/{fileUuid}/{owner}: Table 29
+- Path/list: list files array(File[uuid, owner, array(sites)]) for user:
   if SiteManager -> files with managed site
   if ExperimentDeveloper -> files owned
 
