@@ -23,10 +23,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.uc3m.fs.keycloak.KeycloakUtil;
+import com.uc3m.fs.model.FileResponse;
 import com.uc3m.fs.rbac.RBACRestService;
 import com.uc3m.fs.storage.File;
 import com.uc3m.fs.storage.FileId;
@@ -92,6 +94,11 @@ public class FS_Controller {
 					.body(new InputStreamResource(new FileInputStream(fileRead)));
 		} catch (StorageFileNotFoundException e) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		} catch (HttpClientErrorException e) {
+			if (e.getStatusCode()==HttpStatus.UNAUTHORIZED)
+				return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -140,30 +147,45 @@ public class FS_Controller {
 	}
 
 	@GetMapping(value = Config.PATH_LIST_FOR_USER)
-	public ResponseEntity<List<String>> list_for_user(HttpServletRequest request) {
+	public ResponseEntity<List<FileResponse>> list_for_user(HttpServletRequest request) {
 		try {
-			List<File> files = new ArrayList<File>();
+			List<FileResponse> result = null;
+
 			// Keycloak
 			String userId = KeycloakUtil.getIdUser(request);
 			boolean userRole = KeycloakUtil.isUserRole(request), managerRole = KeycloakUtil.isManagerRole(request);
 
 			// Add files owner
 			if (userRole) {
-				files.addAll(fileService.findByOwner(userId));
+				// Get from DB
+				List<File> files = fileService.findByOwner(userId);
+				if (files.size() == 0) return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+				// Convert to array of String
+				result = new ArrayList<FileResponse>(files.size());
+				for (int i = 0; i < files.size(); i++) {
+					result.add(
+							new FileResponse(
+									files.get(i).getUuid(),
+									files.get(i).getOwner(),
+									FileService.getSites(files.get(i).getSites())
+									)
+							);
+				}
 			}
 			// Add files of managed sites
 			if (managerRole) {
 				String[] sites = RBACRestService.getSitesOfUser(request.getHeader(HttpHeaders.AUTHORIZATION));
 				// Add all files with his sites
-				files.addAll(fileService.findBySites(sites));
+				result = fileService.findBySites(sites);
+				if (result.size() == 0) return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 			}
-
-			// Return result list
-			if (files.size() == 0) return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-
-			List<String> result = new ArrayList<String>(files.size());
-			for (File f : files) result.add(f.getUuid());
 			return new ResponseEntity<>(result, HttpStatus.OK);
+		} catch (HttpClientErrorException e) {
+			if (e.getStatusCode()==HttpStatus.UNAUTHORIZED)
+				return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

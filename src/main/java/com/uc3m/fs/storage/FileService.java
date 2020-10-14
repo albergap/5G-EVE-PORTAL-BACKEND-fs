@@ -1,13 +1,14 @@
 package com.uc3m.fs.storage;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+import java.util.StringTokenizer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.uc3m.fs.model.FileResponse;
 
 @Service
 public class FileService {
@@ -59,12 +60,42 @@ public class FileService {
 		return new ArrayList<>(0);
 	}
 
-	public Set<File> findBySites(String[] sites) {
-		Set<File> files = new LinkedHashSet<>();
-		for (String s : sites)
-			files.addAll(findBySite(s));
+	public List<FileResponse> findBySites(String[] sites) {
+		List<FileResponse> files = new ArrayList<>();
+		// For every site we'll find managed files
+		for (String s : sites) {
+			List<File> filesFind = findBySite(s);
+			for (int i = 0; i < filesFind.size(); i++) {
+				boolean added = false;
+				// Search for multiple sites -> add to sites list
+				for (FileResponse f : files) {
+					if (f.uuid.equals(filesFind.get(i).getUuid()) && f.owner.equals(filesFind.get(i).getOwner())) {
+						f.sites.add(s);
+						added = true;
+					}
+				}
+				// If first encounter -> create the file response
+				if (!added) {
+					ArrayList<String> managedSites=new ArrayList<String>();
+					managedSites.add(s);
+					files.add(new FileResponse(filesFind.get(i).getUuid(), filesFind.get(i).getOwner(), managedSites));
+				}
+			}
+		}
 
 		return files;
+	}
+
+	public static ArrayList<String> getSites(String sites) {
+		if (sites==null || sites.length()==0) return new ArrayList<>();
+
+		StringTokenizer tok = new StringTokenizer(sites, SITE_SEPARATOR);
+		ArrayList<String> result = new ArrayList<String>(tok.countTokens());
+		while (tok.hasMoreElements()) {
+			String site = (String) tok.nextElement();
+			result.add(site.substring(1, site.length()-1));
+		}
+		return result;
 	}
 
 }
