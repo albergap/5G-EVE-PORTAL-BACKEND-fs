@@ -1,8 +1,10 @@
 package com.uc3m.fs.storage;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,8 +26,8 @@ public class FileService {
 		return files;
 	}
 
-	public File findByUuid(String uuid) {
-		return fileRepository.findById(uuid).orElse(null);
+	public File findById(String uuid, String owner) {
+		return fileRepository.findById(new FileId(uuid, owner)).orElse(null);
 	}
 
 	public File save(File file, String[] sites) {
@@ -41,8 +43,8 @@ public class FileService {
 		return file;
 	}
 
-	public void delete(String uuid) {
-		fileRepository.deleteById(uuid);
+	public void delete(String uuid, String owner) {
+		fileRepository.deleteById(new FileId(uuid, owner));
 	}
 
 	public List<File> findByOwner(String owner) {
@@ -57,8 +59,8 @@ public class FileService {
 		return new ArrayList<>(0);
 	}
 
-	public List<File> findBySites(String[] sites) {
-		List<File> files = new ArrayList<>();
+	public Set<File> findBySites(String[] sites) {
+		Set<File> files = new LinkedHashSet<>();
 		for (String s : sites)
 			files.addAll(findBySite(s));
 

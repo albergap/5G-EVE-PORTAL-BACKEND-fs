@@ -28,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.uc3m.fs.keycloak.KeycloakUtil;
 import com.uc3m.fs.rbac.RBACRestService;
 import com.uc3m.fs.storage.File;
+import com.uc3m.fs.storage.FileId;
 import com.uc3m.fs.storage.FileService;
 import com.uc3m.fs.storage.StorageService;
 import com.uc3m.fs.storage.exceptions.StorageFileNotFoundException;
@@ -51,11 +52,11 @@ public class FS_Controller {
 	@GetMapping(value = Config.PATH_DOWNLOAD + "/{fileUuid}")
 	public ResponseEntity<String> download(@PathVariable(value = "fileUuid", required = true) String uuid, HttpServletRequest request) {
 		try {
-			File file = fileService.findByUuid(uuid);
+			String userId = KeycloakUtil.getIdUser(request);
+			File file = fileService.findById(uuid, userId);
 			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
 			// Keycloak
-			String userId = KeycloakUtil.getIdUser(request);
 			boolean accessByRole = false;
 			boolean userRole = KeycloakUtil.isUserRole(request), managerRole = KeycloakUtil.isManagerRole(request);
 
@@ -99,6 +100,7 @@ public class FS_Controller {
 			@RequestParam(name = "dzuuid", required = true) String uuid,
 			@RequestParam(name = "List<site>", required = false) String[] sites,
 			HttpServletRequest request) {
+		String idUser = null;
 		try {
 			// Params validation
 			if (uuid == null || uuid.isEmpty())
@@ -111,7 +113,8 @@ public class FS_Controller {
 			}
 
 			// Save file to DB
-			File f = new File(uuid, KeycloakUtil.getIdUser(request), "");
+			idUser = KeycloakUtil.getIdUser(request);
+			File f = new File(new FileId(uuid, idUser), "");
 			fileService.save(f, sites);
 
 			// Save file to persistence
@@ -121,7 +124,11 @@ public class FS_Controller {
 		} catch (FileAlreadyExistsException e) {
 			return new ResponseEntity<>(HttpStatus.CONFLICT);
 		} catch (Exception e) {
-			fileService.delete(uuid);
+			try {
+				fileService.delete(uuid, idUser);
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
