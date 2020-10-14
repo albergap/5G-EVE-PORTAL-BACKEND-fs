@@ -50,14 +50,15 @@ public class FS_Controller {
 		this.fileService = fileService;
 	}
 
-	@GetMapping(value = Config.PATH_DOWNLOAD + "/{fileUuid}")
-	public ResponseEntity<InputStreamResource> download(@PathVariable(value = "fileUuid", required = true) String uuid, HttpServletRequest request) {
+	@GetMapping(value = Config.PATH_DOWNLOAD + "/{fileUuid}/{owner}")
+	public ResponseEntity<InputStreamResource> download(@PathVariable(value = "fileUuid", required = true) String uuid, @PathVariable(required = true) String owner, HttpServletRequest request) {
 		try {
-			String userId = KeycloakUtil.getIdUser(request);
-			File file = fileService.findById(uuid, userId);
+			// Exists in DB
+			File file = fileService.findById(uuid, owner);
 			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
 			// Keycloak
+			String userId = KeycloakUtil.getIdUser(request);
 			boolean accessByRole = false;
 			boolean userRole = KeycloakUtil.isUserRole(request), managerRole = KeycloakUtil.isManagerRole(request);
 
@@ -84,7 +85,7 @@ public class FS_Controller {
 			if (!accessByRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
 			// Read file
-			java.io.File fileRead = storageService.readFile(uuid, userId);
+			java.io.File fileRead = storageService.readFile(uuid, file.getOwner());
 			return ResponseEntity.ok()
 					.contentLength(fileRead.length())
 					.contentType(MediaType.APPLICATION_OCTET_STREAM)
