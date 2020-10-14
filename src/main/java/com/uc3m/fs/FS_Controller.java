@@ -1,8 +1,8 @@
 package com.uc3m.fs;
 
+import java.io.FileInputStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -50,7 +51,7 @@ public class FS_Controller {
 	}
 
 	@GetMapping(value = Config.PATH_DOWNLOAD + "/{fileUuid}")
-	public ResponseEntity<String> download(@PathVariable(value = "fileUuid", required = true) String uuid, HttpServletRequest request) {
+	public ResponseEntity<InputStreamResource> download(@PathVariable(value = "fileUuid", required = true) String uuid, HttpServletRequest request) {
 		try {
 			String userId = KeycloakUtil.getIdUser(request);
 			File file = fileService.findById(uuid, userId);
@@ -82,9 +83,12 @@ public class FS_Controller {
 
 			if (!accessByRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
-			// Read file and convert to B64
-			String b64 = Base64.getEncoder().encodeToString(storageService.readFile(uuid));
-			return new ResponseEntity<>(b64, HttpStatus.OK);
+			// Read file
+			java.io.File fileRead = storageService.readFile(uuid, userId);
+			return ResponseEntity.ok()
+					.contentLength(fileRead.length())
+					.contentType(MediaType.APPLICATION_OCTET_STREAM)
+					.body(new InputStreamResource(new FileInputStream(fileRead)));
 		} catch (StorageFileNotFoundException e) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
@@ -118,7 +122,7 @@ public class FS_Controller {
 			fileService.save(f, sites);
 
 			// Save file to persistence
-			storageService.store(file, uuid);
+			storageService.store(file, uuid, idUser);
 
 			return new ResponseEntity<>(HttpStatus.ACCEPTED);
 		} catch (FileAlreadyExistsException e) {

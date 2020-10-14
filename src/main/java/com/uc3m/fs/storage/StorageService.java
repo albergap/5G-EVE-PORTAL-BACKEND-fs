@@ -2,7 +2,6 @@ package com.uc3m.fs.storage;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -15,7 +14,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.uc3m.fs.Config;
@@ -32,30 +30,43 @@ public class StorageService {
 		this.rootLocation = Paths.get(Config.FILES_DIR_LOCATION);
 	}
 
-	public byte[] readFile(String uuid) throws IOException {
-		InputStream is = loadAsResource(uuid).getInputStream();
-		byte[] fileString = StreamUtils.copyToByteArray(is);
-		is.close();
-		return fileString;
+	private static File createUserFolder(String email) throws Exception {
+		try {
+			if (email.contains("\\")) throw new Exception();
+			File f = new File(Config.FILES_DIR_LOCATION + File.separator + email);
+			if (!f.exists()) f.mkdir();
+			return f;
+		} catch (Exception e1) {
+			throw new Exception("Failed to create user folder.");
+		}
 	}
 
-	public void store(MultipartFile file, String name) throws StorageException, FileAlreadyExistsException {
+	@SuppressWarnings("unused")
+	private static void removeUserFolder(String email) throws Exception {// TODO delete functionality
+		if (email.contains("\\")) throw new Exception();
+		File f = new File(email);
+		if (f.exists() && f.isDirectory() && f.listFiles().length==0)
+			f.delete();
+	}
+
+	public File readFile(String uuid, String email) throws IOException {
+		return loadAsResource(email + File.separator + uuid).getFile();
+	}
+
+	public void store(MultipartFile file, String uuid, String email) throws StorageException, FileAlreadyExistsException {
 		try {
 			if (file.isEmpty()) throw new StorageException("Failed to store empty file " + file.getOriginalFilename());
 
-			Path path = rootLocation.resolve(name);
+			createUserFolder(email);
+			Path path = rootLocation.resolve(email + File.separator + uuid);
 			if (Files.exists(path)) throw new FileAlreadyExistsException("");
 
 			file.transferTo(new File(path.toUri()));
 		} catch (FileAlreadyExistsException e) {
-			throw new FileAlreadyExistsException("File " + name + " already exists");
+			throw new FileAlreadyExistsException("File " + uuid + " already exists");
 		} catch (Exception e) {
-			throw new StorageException("Failed to store file: " + name, e);
+			throw new StorageException("Failed to store file: " + uuid, e);
 		}
-	}
-
-	public void store(MultipartFile file) throws StorageException, FileAlreadyExistsException {
-		store(file, file.getOriginalFilename());
 	}
 
 	public Stream<Path> loadAll() {
