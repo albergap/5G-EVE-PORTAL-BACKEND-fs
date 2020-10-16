@@ -54,6 +54,9 @@ public class FS_Controller {
 		this.fileService = fileService;
 	}
 
+	/**
+	 * Return true if the user has authority. Manager: that file has a site/s managed. User: the file is own
+	 */
 	private static boolean authorizedAccessFile(HttpServletRequest request, File file) throws Exception {
 		boolean accessByRole = false;
 		String userId = KeycloakUtil.getIdUser(request);
@@ -63,6 +66,7 @@ public class FS_Controller {
 		if (userRole && userId.equals(file.getOwner())) accessByRole = true;
 		// Verify manager permission
 		if (managerRole) {
+			// Get all sites of file
 			StringTokenizer tok = new StringTokenizer(file.getSites(), ",");
 			String[] sitesFile = new String[tok.countTokens()];
 			for (int i = 0; i < sitesFile.length; i++) {
@@ -70,8 +74,8 @@ public class FS_Controller {
 				sitesFile[i] = s.substring(1, s.length()-1);
 			}
 
+			// Check if is managed
 			String[] sitesUser = RBACRestService.getSitesOfUser(request.getHeader(HttpHeaders.AUTHORIZATION));
-
 			for (int i = 0; i < sitesFile.length && !accessByRole; i++) {
 				// If a site is managed -> access
 				for (int j = 0; j < sitesUser.length && !accessByRole; j++)
@@ -152,7 +156,7 @@ public class FS_Controller {
 		}
 	}
 
-	@GetMapping(value = Config.PATH_LIST_FOR_USER)
+	@GetMapping(value = Config.PATH_LIST)
 	public ResponseEntity<List<FileResponse>> list_for_user(HttpServletRequest request) {
 		try {
 			List<FileResponse> result = null;

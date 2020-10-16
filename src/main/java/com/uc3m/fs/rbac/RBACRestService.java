@@ -16,7 +16,7 @@ public class RBACRestService {
 		HttpHeaders headers = new HttpHeaders();
 		headers.add(HttpHeaders.AUTHORIZATION, bearerToken);
 		RestTemplate rest = new RestTemplate();
-		ResponseEntity<ResponseGet> res = rest.exchange(Config.PATH_RBAC, HttpMethod.GET, new HttpEntity<>(headers),
+		ResponseEntity<ResponseGet> res = rest.exchange(Config.PATH_RBAC_MANAGED_SITES, HttpMethod.GET, new HttpEntity<>(headers),
 				new ParameterizedTypeReference<ResponseGet>(){});
 
 		if (res.getStatusCode() != HttpStatus.OK) throw new Exception("Error calling RBAC");

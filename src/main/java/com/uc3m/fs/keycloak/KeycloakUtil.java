@@ -8,9 +8,9 @@ import org.keycloak.KeycloakPrincipal;
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
 import org.keycloak.representations.AccessToken;
 
-public class KeycloakUtil {
+import com.uc3m.fs.Config;
 
-	public static final String ROLE_SITE_MANAGER = "SiteManager", ROLE_USER = "ExperimentDeveloper";
+public class KeycloakUtil {
 
 	public static String getIdUser(HttpServletRequest request) {
 		KeycloakAuthenticationToken token = (KeycloakAuthenticationToken) request.getUserPrincipal();        
@@ -28,12 +28,12 @@ public class KeycloakUtil {
 
 	public static boolean isUserRole(HttpServletRequest request) {
 		Set<String> roles = getUserRoles(request);
-		return roles.contains(ROLE_USER);
+		return roles.contains(Config.ROLE_USER);
 	}
 
 	public static boolean isManagerRole(HttpServletRequest request) {
 		Set<String> roles = getUserRoles(request);
-		return roles.contains(ROLE_SITE_MANAGER);
+		return roles.contains(Config.ROLE_SITE_MANAGER);
 	}
 
 }

@@ -38,9 +38,12 @@ And fill [application.properties](## src/main/resources/application.properties)
 # Configurations
 ## Config.java
 - `FILES_DIR_LOCATION`: directory for uploaded files
-- `PARENT_PATH`: parent path of endpoint
 - `PATH_DOWNLOAD`: path of download URL
 - `PATH_UPLOAD`: path of upload URL
+- `PATH_LIST`: path of list URL
+- `PATH_RBAC_MANAGED_SITES`: URL of RBAC managed sites
+- `ROLE_SITE_MANAGER`: manager role of Keycloak
+- `ROLE_USER`: developer role of Keycloak
 
 ## src/main/resources/application.properties
 - `server.port`: port
