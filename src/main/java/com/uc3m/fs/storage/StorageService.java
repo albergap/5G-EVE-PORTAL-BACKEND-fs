@@ -49,8 +49,8 @@ public class StorageService {
 			f.delete();
 	}
 
-	public File readFile(String uuid, String email) throws IOException {
-		return loadAsResource(email + File.separator + uuid).getFile();
+	public Resource readFile(String uuid, String email) throws IOException {
+		return loadAsResource(email + File.separator + uuid);
 	}
 
 	public void store(MultipartFile file, String uuid, String email) throws StorageException, FileAlreadyExistsException {

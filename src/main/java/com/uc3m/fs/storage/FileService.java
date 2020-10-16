@@ -32,14 +32,18 @@ public class FileService {
 	}
 
 	public File save(File file, String[] sites) {
-		StringBuilder s = new StringBuilder();
-		for (int i = 0; i < sites.length; i++) {
-			s.append(SITE_OPEN);
-			s.append(sites[i]);
-			s.append(SITE_CLOSE);
-			if (i!=sites.length-1) s.append(SITE_SEPARATOR);
+		if (sites.length > 0) {
+			StringBuilder s = new StringBuilder();
+			for (int i = 0; i < sites.length; i++) {
+				s.append(SITE_OPEN);
+				s.append(sites[i]);
+				s.append(SITE_CLOSE);
+				if (i!=sites.length-1) s.append(SITE_SEPARATOR);
+			}
+			file.setSites(s.toString());
+		} else {
+			file.setSites("");
 		}
-		file.setSites(s.toString());
 		fileRepository.save(file);
 		return file;
 	}

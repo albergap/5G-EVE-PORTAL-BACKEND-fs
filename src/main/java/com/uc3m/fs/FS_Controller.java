@@ -7,10 +7,12 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -52,46 +54,51 @@ public class FS_Controller {
 		this.fileService = fileService;
 	}
 
-	@GetMapping(value = Config.PATH_DOWNLOAD + "/{fileUuid}/{owner}")
-	public ResponseEntity<InputStreamResource> download(@PathVariable(value = "fileUuid", required = true) String uuid, @PathVariable(required = true) String owner, HttpServletRequest request) {
+	private static boolean authorizedAccessFile(HttpServletRequest request, File file) throws Exception {
+		boolean accessByRole = false;
+		String userId = KeycloakUtil.getIdUser(request);
+		boolean userRole = KeycloakUtil.isUserRole(request), managerRole = KeycloakUtil.isManagerRole(request);
+
+		// Verify ownership
+		if (userRole && userId.equals(file.getOwner())) accessByRole = true;
+		// Verify manager permission
+		if (managerRole) {
+			StringTokenizer tok = new StringTokenizer(file.getSites(), ",");
+			String[] sitesFile = new String[tok.countTokens()];
+			for (int i = 0; i < sitesFile.length; i++) {
+				String s = (String) tok.nextElement();
+				sitesFile[i] = s.substring(1, s.length()-1);
+			}
+
+			String[] sitesUser = RBACRestService.getSitesOfUser(request.getHeader(HttpHeaders.AUTHORIZATION));
+
+			for (int i = 0; i < sitesFile.length && !accessByRole; i++) {
+				// If a site is managed -> access
+				for (int j = 0; j < sitesUser.length && !accessByRole; j++)
+					if (sitesFile[i].equals(sitesUser[j])) accessByRole = true;
+			}
+		}
+
+		return accessByRole;
+	}
+
+	@GetMapping(value = Config.PATH_DOWNLOAD + "/{fileUuid}/{owner}", produces="application/zip")
+	public ResponseEntity<InputStreamResource> download(@PathVariable(value = "fileUuid", required = true) String uuid, @PathVariable(required = true) String owner,
+			HttpServletRequest request, HttpServletResponse response) {
 		try {
 			// Exists in DB
 			File file = fileService.findById(uuid, owner);
 			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
-			// Keycloak
-			String userId = KeycloakUtil.getIdUser(request);
-			boolean accessByRole = false;
-			boolean userRole = KeycloakUtil.isUserRole(request), managerRole = KeycloakUtil.isManagerRole(request);
-
-			// Verify ownership
-			if (userRole && userId.equals(file.getOwner())) accessByRole = true;
-			// Verify manager permission
-			if (managerRole) {
-				StringTokenizer tok = new StringTokenizer(file.getSites(), ",");
-				String[] sitesFile = new String[tok.countTokens()];
-				for (int i = 0; i < sitesFile.length; i++) {
-					String s = (String) tok.nextElement();
-					sitesFile[i] = s.substring(1, s.length()-1);
-				}
-
-				String[] sitesUser = RBACRestService.getSitesOfUser(request.getHeader(HttpHeaders.AUTHORIZATION));
-
-				for (int i = 0; i < sitesFile.length && !accessByRole; i++) {
-					// If a site is managed -> access
-					for (int j = 0; j < sitesUser.length && !accessByRole; j++)
-						if (sitesFile[i].equals(sitesUser[j])) accessByRole = true;
-				}
-			}
-
-			if (!accessByRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+			// Verify access
+			if (!authorizedAccessFile(request, file)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
 			// Read file
-			java.io.File fileRead = storageService.readFile(uuid, file.getOwner());
-			return ResponseEntity.ok()
-					.contentLength(fileRead.length())
-					.contentType(MediaType.APPLICATION_OCTET_STREAM)
-					.body(new InputStreamResource(new FileInputStream(fileRead)));
+			Resource fileRead = storageService.readFile(uuid, file.getOwner());
+			// Response
+			response.setHeader("Content-Disposition", "attachment;filename=" + file.getUuid());
+			response.setContentLengthLong(fileRead.getFile().length());
+			return ResponseEntity.ok().body(new InputStreamResource(new FileInputStream(fileRead.getFile())));
 		} catch (StorageFileNotFoundException e) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		} catch (HttpClientErrorException e) {
@@ -115,15 +122,14 @@ public class FS_Controller {
 		String idUser = null;
 		try {
 			// Params validation
-			if (uuid == null || uuid.isEmpty())
-				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			if (uuid.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
 			if (sites != null) {
 				for (int i = 0; i < sites.length; i++)
-					if (sites[i].isEmpty())
-						return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+					if (sites[i].isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			}
 
+			if (sites == null) sites = new String[0];
 			// Save file to DB
 			idUser = KeycloakUtil.getIdUser(request);
 			File f = new File(new FileId(uuid, idUser), "");
