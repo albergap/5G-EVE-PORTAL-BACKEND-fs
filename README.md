@@ -32,7 +32,8 @@ And fill [application.properties](## src/main/resources/application.properties)
 
 # Database
 PostgreSQL database and a role with permissions
-And fill [application.properties](## src/main/resources/application.properties)
+- Fill [application.properties](## src/main/resources/application.properties)
+- Execute `DB.sql`
 
 
 # Configurations
