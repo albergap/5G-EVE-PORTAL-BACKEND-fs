@@ -41,12 +41,18 @@ public class StorageService {
 		}
 	}
 
-	@SuppressWarnings("unused")
-	private static void removeUserFolder(String email) throws Exception {// TODO delete functionality
+	private static void removeUserFolder(String email) throws Exception {
 		if (email.contains("\\")) throw new Exception();
 		File f = new File(email);
 		if (f.exists() && f.isDirectory() && f.listFiles().length==0)
 			f.delete();
+	}
+
+	public boolean removeFile(String email, String uuid) throws Exception {
+		Resource file = readFile(uuid, email);
+		boolean resul = file.getFile().delete();
+		removeUserFolder(email);
+		return resul;
 	}
 
 	public Resource readFile(String uuid, String email) throws IOException {

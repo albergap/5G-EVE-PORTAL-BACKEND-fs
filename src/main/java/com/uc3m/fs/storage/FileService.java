@@ -21,7 +21,7 @@ import javassist.NotFoundException;
 @Service
 public class FileService {
 
-	private final String STATUS_DEPLOY = "DEPLOY", STATUS_DEPLOYED = "DEPLOYED";
+	private final String STATUS_DEPLOY = "FOR_DEPLOY", STATUS_DEPLOYED = "DEPLOYED";
 
 	private FileRepository fileRepository;
 	private DeploymentRequestRepository deploymentRequestRepository;
@@ -68,7 +68,7 @@ public class FileService {
 
 		boolean updated = false;
 		List<DeploymentRequest> dr = f.getDeploymentRequests();
-		for (int i = 0; i < dr.size() || !updated; i++) {
+		for (int i = 0; i < dr.size() && !updated; i++) {
 			if (dr.get(i).getSite().equals(site)) {
 				dr.get(i).setStatus(STATUS_DEPLOYED);
 				updated = true;

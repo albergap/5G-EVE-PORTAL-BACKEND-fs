@@ -17,11 +17,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -31,6 +33,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.uc3m.fs.keycloak.KeycloakUtil;
+import com.uc3m.fs.model.DeployRequest;
 import com.uc3m.fs.model.DeploymentRequestResponse;
 import com.uc3m.fs.model.FileResponse;
 import com.uc3m.fs.rbac.RBACRestService;
@@ -241,16 +244,16 @@ public class FS_Controller {
 		}
 	}
 
-	@PutMapping(value = Config.PATH_DEPLOY + "/{fileUuid}/{owner}/{site}")
+	@PutMapping(value = Config.PATH_DEPLOY + "/{fileUuid}/{owner}")
 	public ResponseEntity<?> deploy(
 			@PathVariable(value = "fileUuid", required = true) String uuid,
 			@PathVariable(required = true) String owner,
-			@PathVariable(required = true) String site,
+			@RequestBody(required = true) DeployRequest deployRequest,
 			HttpServletRequest request) {
 		try {
-			if (uuid.isEmpty() || owner.isEmpty() || site.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			if (uuid.isEmpty() || owner.isEmpty() || deployRequest.site.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
-			fileService.deploy(uuid, owner, site);
+			fileService.deploy(uuid, owner, deployRequest.site);
 			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (FileNotFoundException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
@@ -262,26 +265,24 @@ public class FS_Controller {
 		}
 	}
 
-	/*@GetMapping(value = "fs/test")// TODO tests
-	public ResponseEntity<List<FileResponse>> test() {
-		System.out.println("-------- Tests");
+	@DeleteMapping(value = Config.PATH_DELETE + "/{fileUuid}/{owner}")
+	public ResponseEntity<?> deploy(@PathVariable(value = "fileUuid", required = true) String uuid, @PathVariable(required = true) String owner) {
 		try {
-			String a="kk", b="user1@mail.com";
-			File f=new File(a, b);
-			String[] sites=new String[2];
-			sites[0]="ITALY_TURIN";
-			sites[1]="SPAIN_5TONIC";
+			if (uuid.isEmpty() || owner.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
-			List<FileResponse> kk1=getFilesBySites(fileService.findBySites(sites));
-			for (FileResponse kk2 : kk1) System.out.println(kk2);
-			return new ResponseEntity<>(kk1, HttpStatus.OK);
+			File file = fileService.findById(uuid, owner);
+			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+			fileService.delete(uuid, owner);
+			if (storageService.removeFile(file.getOwner(), file.getUuid()))
+				return new ResponseEntity<>(HttpStatus.OK);
+			else
+				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
-			System.out.println("---");
-			System.out.println(e.getMessage());
-			System.out.println("---");
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-	}*/
+	}
 
 	@ExceptionHandler(ConstraintViolationException.class)
 	public ResponseEntity<?> handleConstraintViolationException(ConstraintViolationException e) {
