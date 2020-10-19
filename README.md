@@ -10,6 +10,7 @@ Tables of 5G_EVE - TFG.pdf
 - Path/list: list files array(File[uuid, owner, array(sites)]) for user:
   if SiteManager -> files with managed site
   if ExperimentDeveloper -> files owned
+- Path/deploy/{fileUuid}/{owner}/{site}: set DEPLOYED to file
 
 
 # Keycloak
@@ -42,6 +43,7 @@ PostgreSQL database and a role with permissions
 - `PATH_DOWNLOAD`: path of download URL
 - `PATH_UPLOAD`: path of upload URL
 - `PATH_LIST`: path of list URL
+- `PATH_DEPLOY`: path of deploy URL
 - `PATH_RBAC_MANAGED_SITES`: URL of RBAC managed sites
 - `ROLE_SITE_MANAGER`: manager role of Keycloak
 - `ROLE_USER`: developer role of Keycloak

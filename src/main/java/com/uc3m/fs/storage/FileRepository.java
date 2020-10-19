@@ -6,15 +6,16 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
-public interface FileRepository extends CrudRepository<File, FileId> {
+import com.uc3m.fs.storage.model.File;
+import com.uc3m.fs.storage.model.FilePK;
 
-	Optional<File> findById(FileId fileId);
+public interface FileRepository extends CrudRepository<File, FilePK> {
 
-	void deleteById(FileId fileId);
+	Optional<File> findById(FilePK fileId);
 
-	@Query(value = "SELECT f FROM files f WHERE f.fileId.owner = :owner")
-	Optional<List<File>> findByOwner(String owner);
+	void deleteById(FilePK fileId);
 
-	Optional<List<File>> findBySitesContaining(String site);
+	@Query(value = "SELECT f FROM File f WHERE f.id.owner = :owner")
+	List<File> findByOwner(String owner);
 
 }

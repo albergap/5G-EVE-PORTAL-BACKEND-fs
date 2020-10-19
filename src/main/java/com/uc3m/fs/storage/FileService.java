@@ -1,24 +1,35 @@
 package com.uc3m.fs.storage;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.StringTokenizer;
+
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.uc3m.fs.model.FileResponse;
+import com.uc3m.fs.storage.exceptions.FileServiceException;
+import com.uc3m.fs.storage.model.DeploymentRequest;
+import com.uc3m.fs.storage.model.DeploymentRequestPK;
+import com.uc3m.fs.storage.model.File;
+import com.uc3m.fs.storage.model.FilePK;
+import com.uc3m.fs.storage.model.Site;
+
+import javassist.NotFoundException;
 
 @Service
 public class FileService {
 
-	private static final String SITE_SEPARATOR = ",", SITE_OPEN = "(", SITE_CLOSE = ")";
+	private final String STATUS_DEPLOY = "DEPLOY", STATUS_DEPLOYED = "DEPLOYED";
+
 	private FileRepository fileRepository;
+	private DeploymentRequestRepository deploymentRequestRepository;
 
 	@Autowired
-	public FileService(FileRepository fileRepository) {
+	public FileService(FileRepository fileRepository, DeploymentRequestRepository deploymentRequestRepository) {
 		this.fileRepository = fileRepository;
+		this.deploymentRequestRepository = deploymentRequestRepository;
 	}
 
 	public List<File> listAll() {
@@ -28,78 +39,65 @@ public class FileService {
 	}
 
 	public File findById(String uuid, String owner) {
-		return fileRepository.findById(new FileId(uuid, owner)).orElse(null);
+		return fileRepository.findById(new FilePK(uuid, owner)).orElse(null);
 	}
 
-	public File save(File file, String[] sites) {
-		if (sites.length > 0) {
-			StringBuilder s = new StringBuilder();
-			for (int i = 0; i < sites.length; i++) {
-				s.append(SITE_OPEN);
-				s.append(sites[i]);
-				s.append(SITE_CLOSE);
-				if (i!=sites.length-1) s.append(SITE_SEPARATOR);
+	@Transactional
+	public File save(File file, String[] sites) throws FileServiceException {
+		try {
+			fileRepository.save(file);
+			ArrayList<DeploymentRequest> requests = new ArrayList<>(sites.length);
+			if (sites.length > 0) {
+				for (int i = 0; i < sites.length; i++) {
+					requests.add(new DeploymentRequest(
+							new DeploymentRequestPK(file.getUuid(), file.getOwner(), sites[i]),
+							file, null, STATUS_DEPLOY));
+				}
 			}
-			file.setSites(s.toString());
-		} else {
-			file.setSites("");
+			deploymentRequestRepository.saveAll(requests);
+		} catch (Exception e) {
+			throw new FileServiceException(e.getMessage());
 		}
-		fileRepository.save(file);
 		return file;
 	}
 
+	@Transactional
+	public void deploy(String uuid, String owner, String site) throws Exception {
+		File f = findById(uuid, owner);
+		if (f == null) throw new FileNotFoundException(uuid + " file not found");
+
+		boolean updated = false;
+		List<DeploymentRequest> dr = f.getDeploymentRequests();
+		for (int i = 0; i < dr.size() || !updated; i++) {
+			if (dr.get(i).getSite().equals(site)) {
+				dr.get(i).setStatus(STATUS_DEPLOYED);
+				updated = true;
+				break;
+			}
+		}
+		if (!updated) throw new NotFoundException(uuid + " file not found");
+	}
+
 	public void delete(String uuid, String owner) {
-		fileRepository.deleteById(new FileId(uuid, owner));
+		fileRepository.deleteById(new FilePK(uuid, owner));
 	}
 
 	public List<File> findByOwner(String owner) {
-		Optional<List<File>> o = fileRepository.findByOwner(owner);
-		if (o.isPresent()) return o.get();
-		return new ArrayList<>(0);
+		return fileRepository.findByOwner(owner);
 	}
 
-	public List<File> findBySite(String site) {
-		Optional<List<File>> o = fileRepository.findBySitesContaining(SITE_OPEN + site + SITE_CLOSE);
-		if (o.isPresent()) return o.get();
-		return new ArrayList<>(0);
+	public List<DeploymentRequest> findBySite(String site) {
+		return deploymentRequestRepository.findBySiteBean(new Site(site));
 	}
 
-	public List<FileResponse> findBySites(String[] sites) {
-		List<FileResponse> files = new ArrayList<>();
+	@Transactional
+	public List<DeploymentRequest> findBySites(String[] sites) {
+		List<DeploymentRequest> deploymentRequest = new ArrayList<>();
 		// For every site we'll find managed files
-		for (String s : sites) {
-			List<File> filesFind = findBySite(s);
-			for (int i = 0; i < filesFind.size(); i++) {
-				boolean added = false;
-				// Search for multiple sites -> add to sites list
-				for (FileResponse f : files) {
-					if (f.uuid.equals(filesFind.get(i).getUuid()) && f.owner.equals(filesFind.get(i).getOwner())) {
-						f.sites.add(s);
-						added = true;
-					}
-				}
-				// If first encounter -> create the file response
-				if (!added) {
-					ArrayList<String> managedSites=new ArrayList<String>();
-					managedSites.add(s);
-					files.add(new FileResponse(filesFind.get(i).getUuid(), filesFind.get(i).getOwner(), managedSites));
-				}
-			}
-		}
+		for (String s : sites)
+			deploymentRequest.addAll(findBySite(s));
 
-		return files;
-	}
-
-	public static ArrayList<String> getSites(String sites) {
-		if (sites==null || sites.length()==0) return new ArrayList<>();
-
-		StringTokenizer tok = new StringTokenizer(sites, SITE_SEPARATOR);
-		ArrayList<String> result = new ArrayList<String>(tok.countTokens());
-		while (tok.hasMoreElements()) {
-			String site = (String) tok.nextElement();
-			result.add(site.substring(1, site.length()-1));
-		}
-		return result;
+		return deploymentRequest;
 	}
 
 }

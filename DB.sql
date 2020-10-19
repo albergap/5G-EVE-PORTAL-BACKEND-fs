@@ -19,7 +19,7 @@ INSERT INTO public.files (uuid, "owner", sites) VALUES ('das', 'user1@mail.com',
 
 
 -- Version 2
-DROP TABLE IF EXISTS public.deployment_requests;
+DROP TABLE IF EXISTS public.files;
 CREATE TABLE public.files (
 	uuid VARCHAR NOT NULL,
 	owner VARCHAR NOT NULL,
@@ -32,15 +32,15 @@ CREATE TABLE public.sites (
 	PRIMARY KEY (site)
 );
 
-DROP TABLE IF EXISTS public.files;
+DROP TABLE IF EXISTS public.deployment_requests;
 CREATE TABLE public.deployment_requests (
 	uuid VARCHAR NOT NULL,
 	owner VARCHAR NOT NULL,
 	site VARCHAR NOT NULL,
 	status VARCHAR NOT NULL,
 	PRIMARY KEY (uuid,owner,site),
-	CONSTRAINT fk_files FOREIGN KEY(uuid,owner) REFERENCES files(uuid,owner),
-	CONSTRAINT fk_sites FOREIGN KEY(site) REFERENCES sites(site)
+	CONSTRAINT fk_files FOREIGN KEY(uuid,owner) REFERENCES files(uuid,owner) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT fk_sites FOREIGN KEY(site) REFERENCES sites(site) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 

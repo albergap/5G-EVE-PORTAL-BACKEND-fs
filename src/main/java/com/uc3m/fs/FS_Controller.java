@@ -1,10 +1,10 @@
 package com.uc3m.fs;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.nio.file.FileAlreadyExistsException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -30,13 +31,16 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.uc3m.fs.keycloak.KeycloakUtil;
+import com.uc3m.fs.model.DeploymentRequestResponse;
 import com.uc3m.fs.model.FileResponse;
 import com.uc3m.fs.rbac.RBACRestService;
-import com.uc3m.fs.storage.File;
-import com.uc3m.fs.storage.FileId;
 import com.uc3m.fs.storage.FileService;
 import com.uc3m.fs.storage.StorageService;
 import com.uc3m.fs.storage.exceptions.StorageFileNotFoundException;
+import com.uc3m.fs.storage.model.DeploymentRequest;
+import com.uc3m.fs.storage.model.File;
+
+import javassist.NotFoundException;
 
 @RestController
 public class FS_Controller {
@@ -54,36 +58,70 @@ public class FS_Controller {
 		this.fileService = fileService;
 	}
 
-	/**
-	 * Return true if the user has authority. Manager: that file has a site/s managed. User: the file is own
-	 */
-	private static boolean authorizedAccessFile(HttpServletRequest request, File file) throws Exception {
-		boolean accessByRole = false;
+	private static boolean ownership(HttpServletRequest request, File file) {
+		boolean userRole = KeycloakUtil.isUserRole(request);
+		if (!userRole) return false;
 		String userId = KeycloakUtil.getIdUser(request);
-		boolean userRole = KeycloakUtil.isUserRole(request), managerRole = KeycloakUtil.isManagerRole(request);
+		return (userRole && userId.equals(file.getId().getOwner()));
+	}
+	private static boolean managed(HttpServletRequest request, File file) throws Exception {
+		if (!KeycloakUtil.isManagerRole(request)) return false;
 
-		// Verify ownership
-		if (userRole && userId.equals(file.getOwner())) accessByRole = true;
-		// Verify manager permission
-		if (managerRole) {
-			// Get all sites of file
-			StringTokenizer tok = new StringTokenizer(file.getSites(), ",");
-			String[] sitesFile = new String[tok.countTokens()];
-			for (int i = 0; i < sitesFile.length; i++) {
-				String s = (String) tok.nextElement();
-				sitesFile[i] = s.substring(1, s.length()-1);
+		// Get all sites of file, auxiliar variable
+		String[] sitesFile = new String[file.getDeploymentRequests().size()];
+		for (int i = 0; i < sitesFile.length; i++)
+			sitesFile[i] = file.getDeploymentRequests().get(i).getSite();
+
+		// Check if is managed
+		String[] sitesUser = RBACRestService.getSitesOfUser(request.getHeader(HttpHeaders.AUTHORIZATION));
+		for (int i = 0; i < sitesFile.length; i++) {
+			// If a site is managed -> access
+			for (int j = 0; j < sitesUser.length; j++)
+				if (sitesFile[i].equals(sitesUser[j])) {
+					return true;
+				}
+		}
+		return false;
+	}
+
+	private static boolean authorizedAccessFile(HttpServletRequest request, File file) throws Exception {
+		if (ownership(request, file)) return true;
+		if (managed(request, file)) return true;
+		return false;
+	}
+
+	public static List<FileResponse> getFilesBySites(List<DeploymentRequest> deploymentRequest) {
+		// Create FileResponses for every file
+		// Example: 2 DeploymentRequest with the same file and different sites
+		// will result 1 FileResponse with 2 sites in the list
+
+		List<FileResponse> result = new ArrayList<FileResponse>(deploymentRequest.size());
+		for (int i = 0; i < deploymentRequest.size(); i++) {
+			boolean added = false;
+			// Search for multiple sites -> add to sites list
+			for (FileResponse fr : result) {
+				if (fr.uuid.equals(deploymentRequest.get(i).getId().getUuid()) &&
+						fr.owner.equals(deploymentRequest.get(i).getId().getOwner())) {
+					fr.deploymentRequests.add(
+							new DeploymentRequestResponse(deploymentRequest.get(i).getSite(), deploymentRequest.get(i).getStatus())
+							);
+					added = true;
+				}
 			}
-
-			// Check if is managed
-			String[] sitesUser = RBACRestService.getSitesOfUser(request.getHeader(HttpHeaders.AUTHORIZATION));
-			for (int i = 0; i < sitesFile.length && !accessByRole; i++) {
-				// If a site is managed -> access
-				for (int j = 0; j < sitesUser.length && !accessByRole; j++)
-					if (sitesFile[i].equals(sitesUser[j])) accessByRole = true;
+			// If first encounter -> create the file response
+			if (!added) {
+				ArrayList<DeploymentRequestResponse> deploymentRequestResponse = new ArrayList<DeploymentRequestResponse>();
+				deploymentRequestResponse.add(
+						new DeploymentRequestResponse(deploymentRequest.get(i).getSite(), deploymentRequest.get(i).getStatus())
+						);
+				result.add(new FileResponse(
+						deploymentRequest.get(i).getId().getUuid(),
+						deploymentRequest.get(i).getId().getOwner(),
+						deploymentRequestResponse)
+						);
 			}
 		}
-
-		return accessByRole;
+		return result;
 	}
 
 	@GetMapping(value = Config.PATH_DOWNLOAD + "/{fileUuid}/{owner}", produces="application/zip")
@@ -98,9 +136,9 @@ public class FS_Controller {
 			if (!authorizedAccessFile(request, file)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
 			// Read file
-			Resource fileRead = storageService.readFile(uuid, file.getOwner());
+			Resource fileRead = storageService.readFile(uuid, file.getId().getOwner());
 			// Response
-			response.setHeader("Content-Disposition", "attachment;filename=" + file.getUuid());
+			response.setHeader("Content-Disposition", "attachment;filename=" + file.getId().getUuid());
 			response.setContentLengthLong(fileRead.getFile().length());
 			return ResponseEntity.ok().body(new InputStreamResource(new FileInputStream(fileRead.getFile())));
 		} catch (StorageFileNotFoundException e) {
@@ -121,22 +159,19 @@ public class FS_Controller {
 	public ResponseEntity<Void> upload(
 			@RequestPart(name = "file", required = true) MultipartFile file,
 			@RequestParam(name = "dzuuid", required = true) String uuid,
-			@RequestParam(name = "List<site>", required = false) String[] sites,
+			@RequestParam(name = "List<site>", required = true) String[] sites,
 			HttpServletRequest request) {
 		String idUser = null;
 		try {
 			// Params validation
 			if (uuid.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
-			if (sites != null) {
-				for (int i = 0; i < sites.length; i++)
-					if (sites[i].isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-			}
+			for (int i = 0; i < sites.length; i++)
+				if (sites[i].isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
-			if (sites == null) sites = new String[0];
 			// Save file to DB
 			idUser = KeycloakUtil.getIdUser(request);
-			File f = new File(new FileId(uuid, idUser), "");
+			File f = new File(uuid, idUser);
 			fileService.save(f, sites);
 
 			// Save file to persistence
@@ -157,7 +192,7 @@ public class FS_Controller {
 	}
 
 	@GetMapping(value = Config.PATH_LIST)
-	public ResponseEntity<List<FileResponse>> list_for_user(HttpServletRequest request) {
+	public ResponseEntity<List<FileResponse>> list(HttpServletRequest request) {
 		try {
 			List<FileResponse> result = null;
 
@@ -173,21 +208,25 @@ public class FS_Controller {
 
 				// Convert to array of String
 				result = new ArrayList<FileResponse>(files.size());
+				FileResponse fr;
 				for (int i = 0; i < files.size(); i++) {
-					result.add(
-							new FileResponse(
-									files.get(i).getUuid(),
-									files.get(i).getOwner(),
-									FileService.getSites(files.get(i).getSites())
-									)
+					fr = new FileResponse(
+							files.get(i).getUuid(),
+							files.get(i).getOwner(),
+							new ArrayList<DeploymentRequestResponse>(files.get(i).getDeploymentRequests().size())
 							);
+					for (int j = 0; j < files.get(i).getDeploymentRequests().size(); j++)
+						fr.deploymentRequests.add(new DeploymentRequestResponse(
+								files.get(i).getDeploymentRequests().get(j).getSite(), files.get(i).getDeploymentRequests().get(j).getStatus()
+								));
+					result.add(fr);
 				}
 			}
 			// Add files of managed sites
 			if (managerRole) {
 				String[] sites = RBACRestService.getSitesOfUser(request.getHeader(HttpHeaders.AUTHORIZATION));
 				// Add all files with his sites
-				result = fileService.findBySites(sites);
+				result = getFilesBySites(fileService.findBySites(sites));
 				if (result.size() == 0) return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 			}
 			return new ResponseEntity<>(result, HttpStatus.OK);
@@ -201,6 +240,48 @@ public class FS_Controller {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+
+	@PutMapping(value = Config.PATH_DEPLOY + "/{fileUuid}/{owner}/{site}")
+	public ResponseEntity<?> deploy(
+			@PathVariable(value = "fileUuid", required = true) String uuid,
+			@PathVariable(required = true) String owner,
+			@PathVariable(required = true) String site,
+			HttpServletRequest request) {
+		try {
+			if (uuid.isEmpty() || owner.isEmpty() || site.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+			fileService.deploy(uuid, owner, site);
+			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (FileNotFoundException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+		} catch (NotFoundException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/*@GetMapping(value = "fs/test")// TODO tests
+	public ResponseEntity<List<FileResponse>> test() {
+		System.out.println("-------- Tests");
+		try {
+			String a="kk", b="user1@mail.com";
+			File f=new File(a, b);
+			String[] sites=new String[2];
+			sites[0]="ITALY_TURIN";
+			sites[1]="SPAIN_5TONIC";
+
+			List<FileResponse> kk1=getFilesBySites(fileService.findBySites(sites));
+			for (FileResponse kk2 : kk1) System.out.println(kk2);
+			return new ResponseEntity<>(kk1, HttpStatus.OK);
+		} catch (Exception e) {
+			System.out.println("---");
+			System.out.println(e.getMessage());
+			System.out.println("---");
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+	}*/
 
 	@ExceptionHandler(ConstraintViolationException.class)
 	public ResponseEntity<?> handleConstraintViolationException(ConstraintViolationException e) {
