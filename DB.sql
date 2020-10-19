@@ -1,24 +1,3 @@
--- Version 1
-DROP TABLE IF EXISTS public.files;
-
-CREATE TABLE public.files (
-	uuid VARCHAR,
-	owner VARCHAR,
-	sites VARCHAR,
-	PRIMARY KEY (uuid, owner)
-);
-
-INSERT INTO public.files (uuid, "owner", sites) VALUES ('uuidPostman3.zip', 'user1@mail.com', '(s1)');
-INSERT INTO public.files (uuid, "owner", sites) VALUES ('uuidPostman2.zip', 'user1@mail.com', '(s3)');
-INSERT INTO public.files (uuid, "owner", sites) VALUES ('uuidPostman1.zip', 'user2@mail.com', '');
-INSERT INTO public.files (uuid, "owner", sites) VALUES ('uuidPostman4.zip', 'user1@mail.com', '(s1)');
-INSERT INTO public.files (uuid, "owner", sites) VALUES ('uuidPostman5.zip', 'user1@mail.com', '');
-INSERT INTO public.files (uuid, "owner", sites) VALUES ('uuidPostman1.zip', 'user1@mail.com', '(s1)');
-INSERT INTO public.files (uuid, "owner", sites) VALUES ('das', 'user1@mail.com', '(FRANCE_NICE),(ITALY_TURIN)');
-
-
-
--- Version 2
 DROP TABLE IF EXISTS public.files;
 CREATE TABLE public.files (
 	uuid VARCHAR NOT NULL,

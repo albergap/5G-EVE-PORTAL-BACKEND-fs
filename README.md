@@ -10,7 +10,7 @@ Tables of 5G_EVE - TFG.pdf
 - Path/list: list files array(File[uuid, owner, array(sites)]) for user:
   if SiteManager -> files with managed site
   if ExperimentDeveloper -> files owned
-- Path/deploy/{fileUuid}/{owner}/{site}: set DEPLOYED to file
+- Path/deploy/{fileUuid}/{owner}/{site}: set deployment status DEPLOYED
 
 
 # Keycloak

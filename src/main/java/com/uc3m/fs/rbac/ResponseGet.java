@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ResponseGet {
 
-	@JsonProperty("details")// TODO
+	@JsonProperty("details")
 	String[] sites;
 
 }
