@@ -70,6 +70,8 @@ public class FileService {
 		List<DeploymentRequest> dr = f.getDeploymentRequests();
 		for (int i = 0; i < dr.size() && !updated; i++) {
 			if (dr.get(i).getSite().equals(site)) {
+				if (dr.get(i).getStatus().equals(STATUS_DEPLOYED))
+					throw new NotFoundException(uuid + " with site " + site + " already deployed");
 				dr.get(i).setStatus(STATUS_DEPLOYED);
 				updated = true;
 				break;

@@ -1,16 +1,5 @@
 # Interface
-**Bearer token required**
-## Main
-Tables of 5G_EVE - TFG.pdf
-- Path/upload: File *multipart/form-data* `file`; request parameters `dzuuid` and `List<site>`
-  HttpStatus.FORBIDDEN:
-  - if a ExperimentDeveloper tries to download a file not owned
-  - if a SiteManager tries to download a file not managed
-- Path/download/{fileUuid}/{owner}: Table 29
-- Path/list: list files array(File[uuid, owner, array(sites)]) for user:
-  if SiteManager -> files with managed site
-  if ExperimentDeveloper -> files owned
-- Path/deploy/{fileUuid}/{owner}/{site}: set deployment status DEPLOYED
+`API.yaml`
 
 
 # Keycloak

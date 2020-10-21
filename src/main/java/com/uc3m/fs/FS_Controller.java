@@ -125,8 +125,8 @@ public class FS_Controller {
 		return result;
 	}
 
-	@GetMapping(value = Config.PATH_DOWNLOAD + "/{fileUuid}/{owner}", produces="application/zip")
-	public ResponseEntity<InputStreamResource> download(@PathVariable(value = "fileUuid", required = true) String uuid, @PathVariable(required = true) String owner,
+	@GetMapping(value = Config.PATH_DOWNLOAD + "/{uuid}/{owner}", produces="application/zip")
+	public ResponseEntity<InputStreamResource> download(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner,
 			HttpServletRequest request, HttpServletResponse response) {
 		try {
 			// Exists in DB
@@ -159,7 +159,7 @@ public class FS_Controller {
 	@ResponseBody
 	public ResponseEntity<Void> upload(
 			@RequestPart(name = "file", required = true) MultipartFile file,
-			@RequestParam(name = "dzuuid", required = true) String uuid,
+			@RequestParam(name = "uuid", required = true) String uuid,
 			@RequestParam(name = "List<site>", required = true) String[] sites,
 			HttpServletRequest request) {
 		String idUser = null;
@@ -242,14 +242,14 @@ public class FS_Controller {
 		}
 	}
 
-	@PutMapping(value = Config.PATH_DEPLOY + "/{fileUuid}/{owner}")
+	@PutMapping(value = Config.PATH_DEPLOY + "/{uuid}/{owner}")
 	public ResponseEntity<?> deploy(
-			@PathVariable(value = "fileUuid", required = true) String uuid,
+			@PathVariable(required = true) String uuid,
 			@PathVariable(required = true) String owner,
 			@RequestParam(required = true) String site,
 			HttpServletRequest request) {
 		try {
-			if (uuid.isEmpty() || owner.isEmpty() || site.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			if (site.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
 			fileService.deploy(uuid, owner, site);
 			return new ResponseEntity<>(HttpStatus.OK);
@@ -263,11 +263,9 @@ public class FS_Controller {
 		}
 	}
 
-	@DeleteMapping(value = Config.PATH_DELETE + "/{fileUuid}/{owner}")
-	public ResponseEntity<?> delete(@PathVariable(value = "fileUuid", required = true) String uuid, @PathVariable(required = true) String owner) {
+	@DeleteMapping(value = Config.PATH_DELETE + "/{uuid}/{owner}")
+	public ResponseEntity<?> delete(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner) {
 		try {
-			if (uuid.isEmpty() || owner.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
 			File file = fileService.findById(uuid, owner);
 			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
