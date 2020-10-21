@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -33,7 +32,6 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.uc3m.fs.keycloak.KeycloakUtil;
-import com.uc3m.fs.model.DeployRequest;
 import com.uc3m.fs.model.DeploymentRequestResponse;
 import com.uc3m.fs.model.FileResponse;
 import com.uc3m.fs.rbac.RBACRestService;
@@ -248,12 +246,12 @@ public class FS_Controller {
 	public ResponseEntity<?> deploy(
 			@PathVariable(value = "fileUuid", required = true) String uuid,
 			@PathVariable(required = true) String owner,
-			@RequestBody(required = true) DeployRequest deployRequest,
+			@RequestParam(required = true) String site,
 			HttpServletRequest request) {
 		try {
-			if (uuid.isEmpty() || owner.isEmpty() || deployRequest.site.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			if (uuid.isEmpty() || owner.isEmpty() || site.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
-			fileService.deploy(uuid, owner, deployRequest.site);
+			fileService.deploy(uuid, owner, site);
 			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (FileNotFoundException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
@@ -266,7 +264,7 @@ public class FS_Controller {
 	}
 
 	@DeleteMapping(value = Config.PATH_DELETE + "/{fileUuid}/{owner}")
-	public ResponseEntity<?> deploy(@PathVariable(value = "fileUuid", required = true) String uuid, @PathVariable(required = true) String owner) {
+	public ResponseEntity<?> delete(@PathVariable(value = "fileUuid", required = true) String uuid, @PathVariable(required = true) String owner) {
 		try {
 			if (uuid.isEmpty() || owner.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
