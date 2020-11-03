@@ -1,8 +1,11 @@
 package com.uc3m.fs.model;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.uc3m.fs.storage.model.DeploymentRequest;
+import com.uc3m.fs.storage.model.File;
 
 public class FileResponse {
 
@@ -17,6 +20,15 @@ public class FileResponse {
 		this.uuid = uuid;
 		this.owner = owner;
 		this.deploymentRequests = deploymentRequests;
+	}
+
+	public FileResponse(File file) {
+		uuid = file.getUuid();
+		owner = file.getOwner();
+		List<DeploymentRequest> dr = file.getDeploymentRequests();
+		deploymentRequests = new ArrayList<DeploymentRequestResponse>(dr.size());
+		for (DeploymentRequest d : dr)
+			deploymentRequests.add(new DeploymentRequestResponse(d.getSite(), d.getStatus()));
 	}
 
 	@Override

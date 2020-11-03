@@ -125,6 +125,29 @@ public class FS_Controller {
 		return result;
 	}
 
+	@GetMapping(value = Config.PATH + "/{uuid}/{owner}")
+	public ResponseEntity<FileResponse> getInfoFile(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner,
+			HttpServletRequest request, HttpServletResponse response) {
+		try {
+			// Exists in DB
+			File file = fileService.findById(uuid, owner);
+			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+			// Verify access
+			if (!authorizedAccessFile(request, file)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+
+			return new ResponseEntity<FileResponse>(new FileResponse(file), HttpStatus.OK);
+		} catch (HttpClientErrorException e) {
+			if (e.getStatusCode()==HttpStatus.UNAUTHORIZED)
+				return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
 	@GetMapping(value = Config.PATH_DOWNLOAD + "/{uuid}/{owner}", produces="application/zip")
 	public ResponseEntity<InputStreamResource> download(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner,
 			HttpServletRequest request, HttpServletResponse response) {
@@ -155,7 +178,7 @@ public class FS_Controller {
 		}
 	}
 
-	@PostMapping(value = Config.PATH_UPLOAD, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PostMapping(value = Config.PATH, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@ResponseBody
 	public ResponseEntity<Void> upload(
 			@RequestPart(name = "file", required = true) MultipartFile file,
@@ -261,7 +284,24 @@ public class FS_Controller {
 		}
 	}
 
-	@DeleteMapping(value = Config.PATH_DELETE + "/{uuid}/{owner}")
+	@DeleteMapping(value = Config.PATH + "/{uuid}/{owner}")
+	public ResponseEntity<?> deleteFile(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner) {
+		try {
+			File file = fileService.findById(uuid, owner);
+			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+			fileService.deleteById(uuid, owner);
+			if (storageService.removeFile(file.getOwner(), file.getUuid()))
+				return new ResponseEntity<>(HttpStatus.OK);
+			else
+				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@DeleteMapping(value = Config.PATH_DEPLOYMET_REQUEST + "/{uuid}/{owner}")
 	public ResponseEntity<?> deleteDeploymentRequest(@PathVariable(required = true) String uuid,
 			@PathVariable(required = true) String owner,
 			@RequestParam(required = true) String site) {
