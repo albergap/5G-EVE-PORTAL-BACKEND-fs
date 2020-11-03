@@ -183,7 +183,7 @@ public class FS_Controller {
 			return new ResponseEntity<>(HttpStatus.CONFLICT);
 		} catch (Exception e) {
 			try {
-				fileService.delete(uuid, idUser);
+				fileService.deleteById(uuid, idUser);
 			} catch (Exception e1) {
 				e1.printStackTrace();
 			}
@@ -253,9 +253,7 @@ public class FS_Controller {
 
 			fileService.deploy(uuid, owner, site);
 			return new ResponseEntity<>(HttpStatus.OK);
-		} catch (FileNotFoundException e) {
-			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-		} catch (NotFoundException e) {
+		} catch (FileNotFoundException | NotFoundException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -270,15 +268,21 @@ public class FS_Controller {
 		try {
 			if (site.equals("")) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
+			// Find file
 			File file = fileService.findById(uuid, owner);
 			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
-			fileService.delete(file, site);
+			// Delete deployment request
+			boolean lastDeploymentRequest = fileService.deleteDeploymentRequest(file, site);
+			if (lastDeploymentRequest) return new ResponseEntity<>(HttpStatus.OK);
+
+			// Remove file
 			if (storageService.removeFile(file.getOwner(), file.getUuid()))
 				return new ResponseEntity<>(HttpStatus.OK);
 			else
 				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-		} catch (NotFoundException | StorageFileNotFoundException e) {
+		} catch (NotFoundException | // DB
+				StorageFileNotFoundException e) { // File system
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
 			e.printStackTrace();

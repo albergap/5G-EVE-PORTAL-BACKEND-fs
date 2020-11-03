@@ -7,7 +7,6 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -30,6 +29,9 @@ public class StorageService {
 		this.rootLocation = Paths.get(Config.FILES_DIR_LOCATION);
 	}
 
+	/**
+	 * Create the user folder if doesnt exists
+	 */
 	private static File createUserFolder(String email) throws Exception {
 		try {
 			if (email.contains("\\")) throw new Exception();
@@ -41,6 +43,9 @@ public class StorageService {
 		}
 	}
 
+	/**
+	 * Remove the user folder if is empty
+	 */
 	private static void removeUserFolder(String email) throws Exception {
 		if (email.contains("\\")) throw new Exception();
 		File f = new File(email);
@@ -48,6 +53,9 @@ public class StorageService {
 			f.delete();
 	}
 
+	/**
+	 * Remove file and user folder
+	 */
 	public boolean removeFile(String email, String uuid) throws Exception {
 		Resource file = readFile(uuid, email);
 		boolean resul = file.getFile().delete();
@@ -59,6 +67,9 @@ public class StorageService {
 		return loadAsResource(email + File.separator + uuid);
 	}
 
+	/**
+	 * Save file and create user folder
+	 */
 	public void store(MultipartFile file, String uuid, String email) throws StorageException, FileAlreadyExistsException {
 		try {
 			if (file.isEmpty()) throw new StorageException("Failed to store empty file " + file.getOriginalFilename());
@@ -75,7 +86,7 @@ public class StorageService {
 		}
 	}
 
-	public Stream<Path> loadAll() {
+	/*private Stream<Path> loadAll() {
 		try {
 			return Files.walk(this.rootLocation, 1)
 					.filter(path -> !path.equals(this.rootLocation))
@@ -83,15 +94,11 @@ public class StorageService {
 		} catch (IOException e) {
 			throw new StorageException("Failed to read stored files", e);
 		}
-	}
+	}*/
 
-	public Path load(String filename) {
-		return rootLocation.resolve(filename);
-	}
-
-	public Resource loadAsResource(String filename) {
+	private Resource loadAsResource(String filename) {
 		try {
-			Path file = load(filename);
+			Path file = rootLocation.resolve(filename);
 			Resource resource = new UrlResource(file.toUri());
 			if(resource.exists() || resource.isReadable()) {
 				return resource;

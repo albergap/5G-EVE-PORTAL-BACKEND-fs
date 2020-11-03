@@ -32,16 +32,25 @@ public class FileService {
 		this.deploymentRequestRepository = deploymentRequestRepository;
 	}
 
+	/**
+	 * Get all files of DB
+	 */
 	public List<File> listAll() {
 		List<File> files = new ArrayList<>();
 		fileRepository.findAll().forEach(files::add);
 		return files;
 	}
 
+	/**
+	 * Find file by id
+	 */
 	public File findById(String uuid, String owner) {
 		return fileRepository.findById(new FilePK(uuid, owner)).orElse(null);
 	}
 
+	/**
+	 * Insert file and deployment requests (sites)
+	 */
 	@Transactional
 	public File save(File file, String[] sites) throws FileServiceException {
 		try {
@@ -61,6 +70,9 @@ public class FileService {
 		return file;
 	}
 
+	/**
+	 * Deploy deployment request
+	 */
 	@Transactional
 	public void deploy(String uuid, String owner, String site) throws Exception {
 		File f = findById(uuid, owner);
@@ -80,14 +92,17 @@ public class FileService {
 		if (!updated) throw new NotFoundException(uuid + " file not found");
 	}
 
-	public void delete(String uuid, String owner) {
+	/**
+	 * Delete file by id
+	 */
+	public void deleteById(String uuid, String owner) {
 		fileRepository.deleteById(new FilePK(uuid, owner));
 	}
 	/**
 	 * Delete deployment request. If is the last request remove file
-	 * @return true if was the last request
+	 * @return {@link Boolean} if it was the last request
 	 */
-	public boolean delete(File file, String site) throws NotFoundException {
+	public boolean deleteDeploymentRequest(File file, String site) throws NotFoundException {
 		List<DeploymentRequest> dr = file.getDeploymentRequests();
 		for (DeploymentRequest r: dr) {
 			if (r.getSite().equals(site)) {
@@ -103,14 +118,23 @@ public class FileService {
 		throw new NotFoundException("There is no deployment request with " + site);
 	}
 
+	/**
+	 * Find files by owner
+	 */
 	public List<File> findByOwner(String owner) {
 		return fileRepository.findByOwner(owner);
 	}
 
+	/**
+	 * Find files by site
+	 */
 	public List<DeploymentRequest> findBySite(String site) {
 		return deploymentRequestRepository.findBySiteBean(new Site(site));
 	}
 
+	/**
+	 * Find files by sites
+	 */
 	@Transactional
 	public List<DeploymentRequest> findBySites(String[] sites) {
 		List<DeploymentRequest> deploymentRequest = new ArrayList<>();
