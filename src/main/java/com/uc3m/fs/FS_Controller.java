@@ -264,16 +264,22 @@ public class FS_Controller {
 	}
 
 	@DeleteMapping(value = Config.PATH_DELETE + "/{uuid}/{owner}")
-	public ResponseEntity<?> delete(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner) {
+	public ResponseEntity<?> deleteDeploymentRequest(@PathVariable(required = true) String uuid,
+			@PathVariable(required = true) String owner,
+			@RequestParam(required = true) String site) {
 		try {
+			if (site.equals("")) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
 			File file = fileService.findById(uuid, owner);
 			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
-			fileService.delete(uuid, owner);
+			fileService.delete(file, site);
 			if (storageService.removeFile(file.getOwner(), file.getUuid()))
 				return new ResponseEntity<>(HttpStatus.OK);
 			else
 				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (NotFoundException | StorageFileNotFoundException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

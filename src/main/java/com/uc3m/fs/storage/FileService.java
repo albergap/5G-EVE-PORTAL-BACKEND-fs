@@ -83,6 +83,25 @@ public class FileService {
 	public void delete(String uuid, String owner) {
 		fileRepository.deleteById(new FilePK(uuid, owner));
 	}
+	/**
+	 * Delete deployment request. If is the last request remove file
+	 * @return true if was the last request
+	 */
+	public boolean delete(File file, String site) throws NotFoundException {
+		List<DeploymentRequest> dr = file.getDeploymentRequests();
+		for (DeploymentRequest r: dr) {
+			if (r.getSite().equals(site)) {
+				if (dr.size()==1) {
+					fileRepository.delete(file);
+					return true;
+				} else {
+					deploymentRequestRepository.delete(r);
+					return false;
+				}
+			}
+		}
+		throw new NotFoundException("There is no deployment request with " + site);
+	}
 
 	public List<File> findByOwner(String owner) {
 		return fileRepository.findByOwner(owner);
