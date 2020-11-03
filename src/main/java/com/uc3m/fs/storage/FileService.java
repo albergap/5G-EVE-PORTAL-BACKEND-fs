@@ -104,6 +104,9 @@ public class FileService {
 	 */
 	public boolean deleteDeploymentRequest(File file, String site) throws NotFoundException {
 		List<DeploymentRequest> dr = file.getDeploymentRequests();
+		for (DeploymentRequest r : dr) {
+			System.out.println(r);
+		}
 		for (DeploymentRequest r: dr) {
 			if (r.getSite().equals(site)) {
 				if (dr.size()==1) {
