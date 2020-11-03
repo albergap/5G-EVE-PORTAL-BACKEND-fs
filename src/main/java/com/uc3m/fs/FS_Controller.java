@@ -180,7 +180,7 @@ public class FS_Controller {
 
 	@PostMapping(value = Config.PATH, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@ResponseBody
-	public ResponseEntity<Void> upload(
+	public ResponseEntity<Void> upload(// Body params
 			@RequestPart(name = "file", required = true) MultipartFile file,
 			@RequestParam(name = "uuid", required = true) String uuid,
 			@RequestParam(name = "List<site>", required = true) String[] sites,
@@ -215,7 +215,7 @@ public class FS_Controller {
 		}
 	}
 
-	@GetMapping(value = Config.PATH_LIST)
+	@GetMapping(value = Config.PATH)
 	public ResponseEntity<List<FileResponse>> list(HttpServletRequest request) {
 		try {
 			List<FileResponse> result = null;

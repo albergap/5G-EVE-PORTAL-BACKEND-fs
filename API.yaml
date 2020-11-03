@@ -7,26 +7,26 @@ tags:
   - name: Files
   - name: Deployment requests
 paths:
-  /fs/{uuid}/{owner}:
+  /fs:
     get:
       tags:
         - Files
-      summary: Get information of file
+      summary: get all files owned (if the user is a developer), get all files with a site managed (if the user is a manager)
       security:
         - bearerAuth: []
       responses:
         '200':
-          description: file
+          description: list of files
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/File'
+                type: array
+                items:
+                  $ref: '#/components/schemas/File'
+        '204':
+          description: no content
         '401':
           description: unauthorized
-        '403':
-          description: when the user authenticated does not have access to file
-        '404':
-          description: not found
     post:
       tags:
         - Files
@@ -57,6 +57,26 @@ paths:
           description: when the user authenticated does not have access to file
         '409':
           description: that file already exists
+  /fs/{uuid}/{owner}:
+    get:
+      tags:
+        - Files
+      summary: Get information of file
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+        '401':
+          description: unauthorized
+        '403':
+          description: when the user authenticated does not have access to file
+        '404':
+          description: not found
     delete:
       tags:
         - Files
@@ -117,26 +137,6 @@ paths:
           description: when the user authenticated does not have access to file
         '404':
           description: when the file does not exist
-  /fs/list:
-    get:
-      tags:
-        - Files
-      summary: get all files owned (if the user is a developer), get all files with a site managed (if the user is a manager)
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: list of files
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/File'
-        '204':
-          description: no content
-        '401':
-          description: unauthorized
   /fs/deploy/{uuid}/{owner}:
     put:
       tags:
