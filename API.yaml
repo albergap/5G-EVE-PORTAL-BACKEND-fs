@@ -139,7 +139,7 @@ paths:
     delete:
       tags:
         - FS
-      summary: delete a file
+      summary: delete a deployment request
       parameters:
         - in: path
           name: uuid
@@ -153,6 +153,12 @@ paths:
           required: true
           schema:
             type: string
+        - in: query
+          name: site
+          description: site of deployment request
+          required: true
+          schema:
+            type: string
       security:
         - bearerAuth: []
       responses:
@@ -161,7 +167,7 @@ paths:
         '401':
           description: unauthorized
         '404':
-          description: the file does not exists
+          description: the file or deployment request does not exists
 components:
   schemas:
     File:
