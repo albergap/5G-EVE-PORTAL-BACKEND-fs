@@ -1,30 +1,23 @@
-package com.uc3m.fs.storage.model;
+package com.uc3m.fs.storage.db.entities;
 
 import java.io.Serializable;
 
-import javax.persistence.Column;
 import javax.persistence.Embeddable;
 
 @Embeddable
-public class DeploymentRequestPK implements Serializable {
+public class FilePK implements Serializable {
 	//default serial version id, required for serializable classes.
 	private static final long serialVersionUID = 1L;
 
-	@Column(insertable=false, updatable=false)
 	private String uuid;
 
-	@Column(insertable=false, updatable=false)
 	private String owner;
 
-	@Column(insertable=false, updatable=false)
-	private String site;
-
-	public DeploymentRequestPK() {
+	public FilePK() {
 	}
-	public DeploymentRequestPK(String uuid, String owner, String site) {
+	public FilePK(String uuid, String owner) {
 		this.uuid = uuid;
 		this.owner = owner;
-		this.site = site;
 	}
 	public String getUuid() {
 		return this.uuid;
@@ -38,25 +31,18 @@ public class DeploymentRequestPK implements Serializable {
 	public void setOwner(String owner) {
 		this.owner = owner;
 	}
-	public String getSite() {
-		return this.site;
-	}
-	public void setSite(String site) {
-		this.site = site;
-	}
 
 	public boolean equals(Object other) {
 		if (this == other) {
 			return true;
 		}
-		if (!(other instanceof DeploymentRequestPK)) {
+		if (!(other instanceof FilePK)) {
 			return false;
 		}
-		DeploymentRequestPK castOther = (DeploymentRequestPK)other;
+		FilePK castOther = (FilePK)other;
 		return 
 				this.uuid.equals(castOther.uuid)
-				&& this.owner.equals(castOther.owner)
-				&& this.site.equals(castOther.site);
+				&& this.owner.equals(castOther.owner);
 	}
 
 	public int hashCode() {
@@ -64,14 +50,13 @@ public class DeploymentRequestPK implements Serializable {
 		int hash = 17;
 		hash = hash * prime + this.uuid.hashCode();
 		hash = hash * prime + this.owner.hashCode();
-		hash = hash * prime + this.site.hashCode();
 
 		return hash;
 	}
 
 	@Override
 	public String toString() {
-		return "DeploymentRequestPK [uuid=" + uuid + ", owner=" + owner + ", site=" + site + "]";
+		return "FilePK [uuid=" + uuid + ", owner=" + owner + "]";
 	}
 
 }

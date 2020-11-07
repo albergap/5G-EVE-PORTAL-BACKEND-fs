@@ -1,23 +1,30 @@
-package com.uc3m.fs.storage.model;
+package com.uc3m.fs.storage.db.entities;
 
 import java.io.Serializable;
 
+import javax.persistence.Column;
 import javax.persistence.Embeddable;
 
 @Embeddable
-public class FilePK implements Serializable {
+public class DeploymentRequestPK implements Serializable {
 	//default serial version id, required for serializable classes.
 	private static final long serialVersionUID = 1L;
 
+	@Column(insertable=false, updatable=false)
 	private String uuid;
 
+	@Column(insertable=false, updatable=false)
 	private String owner;
 
-	public FilePK() {
+	@Column(insertable=false, updatable=false)
+	private String site;
+
+	public DeploymentRequestPK() {
 	}
-	public FilePK(String uuid, String owner) {
+	public DeploymentRequestPK(String uuid, String owner, String site) {
 		this.uuid = uuid;
 		this.owner = owner;
+		this.site = site;
 	}
 	public String getUuid() {
 		return this.uuid;
@@ -31,18 +38,25 @@ public class FilePK implements Serializable {
 	public void setOwner(String owner) {
 		this.owner = owner;
 	}
+	public String getSite() {
+		return this.site;
+	}
+	public void setSite(String site) {
+		this.site = site;
+	}
 
 	public boolean equals(Object other) {
 		if (this == other) {
 			return true;
 		}
-		if (!(other instanceof FilePK)) {
+		if (!(other instanceof DeploymentRequestPK)) {
 			return false;
 		}
-		FilePK castOther = (FilePK)other;
+		DeploymentRequestPK castOther = (DeploymentRequestPK)other;
 		return 
 				this.uuid.equals(castOther.uuid)
-				&& this.owner.equals(castOther.owner);
+				&& this.owner.equals(castOther.owner)
+				&& this.site.equals(castOther.site);
 	}
 
 	public int hashCode() {
@@ -50,13 +64,14 @@ public class FilePK implements Serializable {
 		int hash = 17;
 		hash = hash * prime + this.uuid.hashCode();
 		hash = hash * prime + this.owner.hashCode();
+		hash = hash * prime + this.site.hashCode();
 
 		return hash;
 	}
 
 	@Override
 	public String toString() {
-		return "FilePK [uuid=" + uuid + ", owner=" + owner + "]";
+		return "DeploymentRequestPK [uuid=" + uuid + ", owner=" + owner + ", site=" + site + "]";
 	}
 
 }

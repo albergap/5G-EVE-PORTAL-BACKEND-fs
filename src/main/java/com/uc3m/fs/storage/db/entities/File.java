@@ -1,40 +1,48 @@
-package com.uc3m.fs.storage.model;
+package com.uc3m.fs.storage.db.entities;
 
 import java.io.Serializable;
 import java.util.List;
 
+import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.Id;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
 @Entity
-@Table(name="sites")
-@NamedQuery(name="Site.findAll", query="SELECT s FROM Site s")
-public class Site implements Serializable {
+@Table(name="files")
+@NamedQuery(name="File.findAll", query="SELECT f FROM File f")
+public class File implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	@Id
-	private String site;
+	@EmbeddedId
+	private FilePK id;
 
 	//bi-directional many-to-one association to DeploymentRequest
-	@OneToMany(mappedBy="siteBean", fetch = FetchType.LAZY)
+	@OneToMany(mappedBy="file", fetch = FetchType.EAGER)
 	private List<DeploymentRequest> deploymentRequests;
 
-	public Site() {
+	public File() {
+	}
+	public File(String uuid, String owner) {
+		id = new FilePK(uuid, owner);
 	}
 
-	public Site(String site) {
-		this.site = site;
+	public String getOwner() {
+		return this.id.getOwner();
 	}
 
-	public String getSite() {
-		return this.site;
+	public String getUuid() {
+		return this.id.getUuid();
 	}
 
-	public void setSite(String site) {
-		this.site = site;
+	public FilePK getId() {
+		return this.id;
+	}
+
+	public void setId(FilePK id) {
+		this.id = id;
 	}
 
 	public List<DeploymentRequest> getDeploymentRequests() {
@@ -47,21 +55,21 @@ public class Site implements Serializable {
 
 	public DeploymentRequest addDeploymentRequest(DeploymentRequest deploymentRequest) {
 		getDeploymentRequests().add(deploymentRequest);
-		deploymentRequest.setSiteBean(this);
+		deploymentRequest.setFile(this);
 
 		return deploymentRequest;
 	}
 
 	public DeploymentRequest removeDeploymentRequest(DeploymentRequest deploymentRequest) {
 		getDeploymentRequests().remove(deploymentRequest);
-		deploymentRequest.setSiteBean(null);
+		deploymentRequest.setFile(null);
 
 		return deploymentRequest;
 	}
 
 	@Override
 	public String toString() {
-		return "Site [site=" + site + "]";
+		return "File [uuid=" + id.getUuid() + ", owner=" + id.getOwner() + "]";
 	}
 
 }

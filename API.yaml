@@ -11,7 +11,7 @@ paths:
     get:
       tags:
         - Files
-      summary: get all files owned (if the user is a developer), get all files with a site managed (if the user is a manager)
+      summary: Get all files owned (if the user is a developer), get all files with a site managed (if the user is a manager)
       security:
         - bearerAuth: []
       responses:
@@ -141,7 +141,7 @@ paths:
     put:
       tags:
         - Files
-      summary: deploy a file
+      summary: Deploy a VNF
       parameters:
         - in: path
           name: uuid
@@ -234,6 +234,6 @@ components:
         status:
           type: string
   securitySchemes:
-    bearerAuth:            # arbitrary name for the security scheme
+    bearerAuth:
       type: http
       scheme: bearer

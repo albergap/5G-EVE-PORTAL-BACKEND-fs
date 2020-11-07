@@ -1,8 +1,6 @@
 package com.uc3m.fs;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.nio.file.FileAlreadyExistsException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,17 +29,18 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.uc3m.fs.exceptions.DBException;
+import com.uc3m.fs.exceptions.DBFileNotFoundException;
+import com.uc3m.fs.exceptions.FSFileAlreadyExistsException;
+import com.uc3m.fs.exceptions.FSFileNotFoundException;
 import com.uc3m.fs.keycloak.KeycloakUtil;
 import com.uc3m.fs.model.DeploymentRequestResponse;
 import com.uc3m.fs.model.FileResponse;
 import com.uc3m.fs.rbac.RBACRestService;
-import com.uc3m.fs.storage.FileService;
-import com.uc3m.fs.storage.StorageService;
-import com.uc3m.fs.storage.exceptions.StorageFileNotFoundException;
-import com.uc3m.fs.storage.model.DeploymentRequest;
-import com.uc3m.fs.storage.model.File;
-
-import javassist.NotFoundException;
+import com.uc3m.fs.storage.db.FileService;
+import com.uc3m.fs.storage.db.entities.DeploymentRequest;
+import com.uc3m.fs.storage.db.entities.File;
+import com.uc3m.fs.storage.fs.StorageService;
 
 @RestController
 public class FS_Controller {
@@ -165,7 +164,7 @@ public class FS_Controller {
 			response.setHeader("Content-Disposition", "attachment;filename=" + file.getId().getUuid());
 			response.setContentLengthLong(fileRead.getFile().length());
 			return ResponseEntity.ok().body(new InputStreamResource(new FileInputStream(fileRead.getFile())));
-		} catch (StorageFileNotFoundException e) {
+		} catch (FSFileNotFoundException e) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		} catch (HttpClientErrorException e) {
 			if (e.getStatusCode()==HttpStatus.UNAUTHORIZED)
@@ -202,13 +201,14 @@ public class FS_Controller {
 			storageService.store(file, uuid, idUser);
 
 			return new ResponseEntity<>(HttpStatus.ACCEPTED);
-		} catch (FileAlreadyExistsException e) {
+		} catch (FSFileAlreadyExistsException e) {
 			return new ResponseEntity<>(HttpStatus.CONFLICT);
 		} catch (Exception e) {
 			try {
 				fileService.deleteById(uuid, idUser);
 			} catch (Exception e1) {
 				e1.printStackTrace();
+				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -276,8 +276,10 @@ public class FS_Controller {
 
 			fileService.deploy(uuid, owner, site);
 			return new ResponseEntity<>(HttpStatus.OK);
-		} catch (FileNotFoundException | NotFoundException e) {
+		} catch (DBFileNotFoundException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+		} catch (DBException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -323,8 +325,7 @@ public class FS_Controller {
 			} else {
 				return new ResponseEntity<>(HttpStatus.OK);
 			}
-		} catch (NotFoundException | // DB
-				StorageFileNotFoundException e) { // File system
+		} catch (DBFileNotFoundException | FSFileNotFoundException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
 			e.printStackTrace();

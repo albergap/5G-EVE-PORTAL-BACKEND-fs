@@ -1,6 +1,5 @@
-package com.uc3m.fs.storage;
+package com.uc3m.fs.storage.db;
 
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,14 +8,13 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.uc3m.fs.storage.exceptions.FileServiceException;
-import com.uc3m.fs.storage.model.DeploymentRequest;
-import com.uc3m.fs.storage.model.DeploymentRequestPK;
-import com.uc3m.fs.storage.model.File;
-import com.uc3m.fs.storage.model.FilePK;
-import com.uc3m.fs.storage.model.Site;
-
-import javassist.NotFoundException;
+import com.uc3m.fs.exceptions.DBException;
+import com.uc3m.fs.exceptions.DBFileNotFoundException;
+import com.uc3m.fs.storage.db.entities.DeploymentRequest;
+import com.uc3m.fs.storage.db.entities.DeploymentRequestPK;
+import com.uc3m.fs.storage.db.entities.File;
+import com.uc3m.fs.storage.db.entities.FilePK;
+import com.uc3m.fs.storage.db.entities.Site;
 
 @Service
 public class FileService {
@@ -52,7 +50,7 @@ public class FileService {
 	 * Insert file and deployment requests (sites)
 	 */
 	@Transactional
-	public File save(File file, String[] sites) throws FileServiceException {
+	public File save(File file, String[] sites) throws DBException {
 		try {
 			fileRepository.save(file);
 			ArrayList<DeploymentRequest> requests = new ArrayList<>(sites.length);
@@ -64,32 +62,32 @@ public class FileService {
 				}
 			}
 			deploymentRequestRepository.saveAll(requests);
+			return file;
 		} catch (Exception e) {
-			throw new FileServiceException(e.getMessage());
+			throw new DBException(e.getMessage(), e);
 		}
-		return file;
 	}
 
 	/**
 	 * Deploy deployment request
 	 */
 	@Transactional
-	public void deploy(String uuid, String owner, String site) throws Exception {
+	public void deploy(String uuid, String owner, String site) throws DBFileNotFoundException, Exception {
 		File f = findById(uuid, owner);
-		if (f == null) throw new FileNotFoundException(uuid + " file not found");
+		if (f == null) throw new DBFileNotFoundException(uuid + " file not found");
 
 		boolean updated = false;
 		List<DeploymentRequest> dr = f.getDeploymentRequests();
 		for (int i = 0; i < dr.size() && !updated; i++) {
 			if (dr.get(i).getSite().equals(site)) {
 				if (dr.get(i).getStatus().equals(STATUS_DEPLOYED))
-					throw new NotFoundException(uuid + " with site " + site + " already deployed");
+					throw new DBException(uuid + " with site " + site + " already deployed");
 				dr.get(i).setStatus(STATUS_DEPLOYED);
 				updated = true;
 				break;
 			}
 		}
-		if (!updated) throw new NotFoundException(uuid + " file not found");
+		if (!updated) throw new DBFileNotFoundException(uuid + " file not found");
 	}
 
 	/**
@@ -102,11 +100,8 @@ public class FileService {
 	 * Delete deployment request. If is the last request remove file
 	 * @return {@link Boolean} if it was the last request
 	 */
-	public boolean deleteDeploymentRequest(File file, String site) throws NotFoundException {
+	public boolean deleteDeploymentRequest(File file, String site) throws DBFileNotFoundException {
 		List<DeploymentRequest> dr = file.getDeploymentRequests();
-		for (DeploymentRequest r : dr) {
-			System.out.println(r);
-		}
 		for (DeploymentRequest r: dr) {
 			if (r.getSite().equals(site)) {
 				if (dr.size()==1) {
@@ -118,7 +113,7 @@ public class FileService {
 				}
 			}
 		}
-		throw new NotFoundException("There is no deployment request with " + site);
+		throw new DBFileNotFoundException("There is no deployment request with " + site);
 	}
 
 	/**

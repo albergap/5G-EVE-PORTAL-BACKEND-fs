@@ -1,4 +1,4 @@
-package com.uc3m.fs.storage;
+package com.uc3m.fs.storage.db;
 
 import java.util.List;
 import java.util.Optional;
@@ -6,10 +6,10 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
-import com.uc3m.fs.storage.model.File;
-import com.uc3m.fs.storage.model.FilePK;
+import com.uc3m.fs.storage.db.entities.File;
+import com.uc3m.fs.storage.db.entities.FilePK;
 
-public interface FileRepository extends CrudRepository<File, FilePK> {
+interface FileRepository extends CrudRepository<File, FilePK> {
 
 	Optional<File> findById(FilePK fileId);
 

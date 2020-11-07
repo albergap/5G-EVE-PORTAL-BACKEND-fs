@@ -1,4 +1,4 @@
-package com.uc3m.fs.storage.model;
+package com.uc3m.fs.storage.db.entities;
 
 import java.io.Serializable;
 

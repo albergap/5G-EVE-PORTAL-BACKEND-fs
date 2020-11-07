@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.uc3m.fs.storage.model.DeploymentRequest;
-import com.uc3m.fs.storage.model.File;
+import com.uc3m.fs.storage.db.entities.DeploymentRequest;
+import com.uc3m.fs.storage.db.entities.File;
 
 public class FileResponse {
 
