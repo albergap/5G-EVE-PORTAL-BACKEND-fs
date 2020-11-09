@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -44,6 +45,9 @@ import com.uc3m.fs.storage.fs.StorageService;
 
 @RestController
 public class FS_Controller {
+
+	private static final String PATH = "fs/", PATH_DOWNLOAD = "fs/download",
+			PATH_DEPLOYMET_REQUEST = "fs/deployment_request", PATH_DEPLOY = PATH_DEPLOYMET_REQUEST + "/deploy";
 
 	@Autowired
 	private FileService fileService;
@@ -90,7 +94,7 @@ public class FS_Controller {
 		return false;
 	}
 
-	public static List<FileResponse> getFilesBySites(List<DeploymentRequest> deploymentRequest) {
+	private static List<FileResponse> getFilesBySites(List<DeploymentRequest> deploymentRequest) {
 		// Create FileResponses for every file
 		// Example: 2 DeploymentRequest with the same file and different sites
 		// will result 1 FileResponse with 2 sites in the list
@@ -124,12 +128,12 @@ public class FS_Controller {
 		return result;
 	}
 
-	@GetMapping(value = Config.PATH + "/{uuid}/{owner}")
+	@GetMapping(value = PATH + "/{uuid}/{owner}")
 	public ResponseEntity<FileResponse> getInfoFile(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner,
 			HttpServletRequest request, HttpServletResponse response) {
 		try {
 			// Exists in DB
-			File file = fileService.findById(uuid, owner);
+			File file = fileService.findFilesById(uuid, owner);
 			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
 			// Verify access
@@ -147,12 +151,12 @@ public class FS_Controller {
 		}
 	}
 
-	@GetMapping(value = Config.PATH_DOWNLOAD + "/{uuid}/{owner}", produces="application/zip")
+	@GetMapping(value = PATH_DOWNLOAD + "/{uuid}/{owner}", produces="application/zip")
 	public ResponseEntity<InputStreamResource> download(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner,
 			HttpServletRequest request, HttpServletResponse response) {
 		try {
 			// Exists in DB
-			File file = fileService.findById(uuid, owner);
+			File file = fileService.findFilesById(uuid, owner);
 			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
 			// Verify access
@@ -177,7 +181,7 @@ public class FS_Controller {
 		}
 	}
 
-	@PostMapping(value = Config.PATH, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PostMapping(value = PATH, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@ResponseBody
 	public ResponseEntity<Void> upload(// Body params
 			@RequestPart(name = "file", required = true) MultipartFile file,
@@ -195,7 +199,7 @@ public class FS_Controller {
 			// Save file to DB
 			idUser = KeycloakUtil.getIdUser(request);
 			File f = new File(uuid, idUser);
-			fileService.save(f, sites);
+			fileService.saveFile(f, sites);
 
 			// Save file to persistence
 			storageService.store(file, uuid, idUser);
@@ -205,7 +209,7 @@ public class FS_Controller {
 			return new ResponseEntity<>(HttpStatus.CONFLICT);
 		} catch (Exception e) {
 			try {
-				fileService.deleteById(uuid, idUser);
+				fileService.deleteFileById(uuid, idUser);
 			} catch (Exception e1) {
 				e1.printStackTrace();
 				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -215,22 +219,22 @@ public class FS_Controller {
 		}
 	}
 
-	@GetMapping(value = Config.PATH)
-	public ResponseEntity<List<FileResponse>> list(HttpServletRequest request) {
+	@GetMapping(value = PATH)
+	public ResponseEntity<List<FileResponse>> listFiles(HttpServletRequest request) {
 		try {
 			List<FileResponse> result = null;
 
-			// Keycloak
+			// Keycloak info
 			String userId = KeycloakUtil.getIdUser(request);
 			boolean userRole = KeycloakUtil.isUserRole(request), managerRole = KeycloakUtil.isManagerRole(request);
 
-			// Add files owner
+			// Add files owned
 			if (userRole) {
-				// Get from DB
-				List<File> files = fileService.findByOwner(userId);
+				// Get file
+				List<File> files = fileService.findFilesByOwner(userId);
 				if (files.size() == 0) return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 
-				// Convert to array of String
+				// Convert to array of FileResponse
 				result = new ArrayList<FileResponse>(files.size());
 				FileResponse fr;
 				for (int i = 0; i < files.size(); i++) {
@@ -239,6 +243,7 @@ public class FS_Controller {
 							files.get(i).getOwner(),
 							new ArrayList<DeploymentRequestResponse>(files.get(i).getDeploymentRequests().size())
 							);
+					// Deployment requests
 					for (int j = 0; j < files.get(i).getDeploymentRequests().size(); j++)
 						fr.deploymentRequests.add(new DeploymentRequestResponse(
 								files.get(i).getDeploymentRequests().get(j).getSite(), files.get(i).getDeploymentRequests().get(j).getStatus()
@@ -250,7 +255,7 @@ public class FS_Controller {
 			if (managerRole) {
 				String[] sites = RBACRestService.getSitesOfUser(request.getHeader(HttpHeaders.AUTHORIZATION));
 				// Add all files with his sites
-				result = getFilesBySites(fileService.findBySites(sites));
+				result = getFilesBySites(fileService.findDeploymentRequestsBySites(sites));
 				if (result.size() == 0) return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 			}
 			return new ResponseEntity<>(result, HttpStatus.OK);
@@ -265,8 +270,71 @@ public class FS_Controller {
 		}
 	}
 
-	@PutMapping(value = Config.PATH_DEPLOY + "/{uuid}/{owner}")
-	public ResponseEntity<?> deploy(
+	@DeleteMapping(value = PATH + "/{uuid}/{owner}")
+	public ResponseEntity<?> deleteFile(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner) {
+		try {
+			// Get file
+			File file = fileService.findFilesById(uuid, owner);
+			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+			// Delete file
+			fileService.deleteFileById(uuid, owner);
+			if (storageService.removeFile(file.getOwner(), file.getUuid()))
+				return new ResponseEntity<>(HttpStatus.OK);
+			else
+				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@PutMapping(value = PATH_DEPLOYMET_REQUEST + "/{uuid}/{owner}")
+	public ResponseEntity<List<DeploymentRequestResponse>> getDeploymentRequests(// TODO
+			@PathVariable(required = true) String uuid,
+			@PathVariable(required = true) String owner,
+			@RequestParam(required = false) String site,
+			HttpServletRequest request) {
+		try {
+			File file = fileService.findFilesById(uuid, owner);
+			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+			// Verify access
+			if (!authorizedAccessFile(request, file)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+
+			// Get deployment requests
+			List<DeploymentRequest> dr = file.getDeploymentRequests();
+			if (dr.isEmpty()) return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+			// Result
+			List<DeploymentRequestResponse> result = new ArrayList<DeploymentRequestResponse>(dr.size());
+			for (DeploymentRequest d : dr)
+				result.add(new DeploymentRequestResponse(d.getSite(), d.getStatus()));
+
+			return new ResponseEntity<List<DeploymentRequestResponse>>(result, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@PostMapping(value = PATH_DEPLOYMET_REQUEST + "/{uuid}/{owner}")
+	public ResponseEntity<?> addDeploymentRequests(// TODO
+			@PathVariable(required = true) String uuid,
+			@PathVariable(required = true) String owner,
+			@RequestBody(required = true) DeploymentRequestResponse deploymentRequest,
+			HttpServletRequest request) {
+		try {
+
+			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@PutMapping(value = PATH_DEPLOY + "/{uuid}/{owner}")
+	public ResponseEntity<?> deployDeploymentRequest(
 			@PathVariable(required = true) String uuid,
 			@PathVariable(required = true) String owner,
 			@RequestParam(required = true) String site,
@@ -274,7 +342,8 @@ public class FS_Controller {
 		try {
 			if (site.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
-			fileService.deploy(uuid, owner, site);
+			// Deploy
+			fileService.deployDeploymentRequest(uuid, owner, site);
 			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (DBFileNotFoundException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
@@ -286,24 +355,7 @@ public class FS_Controller {
 		}
 	}
 
-	@DeleteMapping(value = Config.PATH + "/{uuid}/{owner}")
-	public ResponseEntity<?> deleteFile(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner) {
-		try {
-			File file = fileService.findById(uuid, owner);
-			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-
-			fileService.deleteById(uuid, owner);
-			if (storageService.removeFile(file.getOwner(), file.getUuid()))
-				return new ResponseEntity<>(HttpStatus.OK);
-			else
-				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-
-	@DeleteMapping(value = Config.PATH_DEPLOYMET_REQUEST + "/{uuid}/{owner}")
+	@DeleteMapping(value = PATH_DEPLOYMET_REQUEST + "/{uuid}/{owner}")
 	public ResponseEntity<?> deleteDeploymentRequest(@PathVariable(required = true) String uuid,
 			@PathVariable(required = true) String owner,
 			@RequestParam(required = true) String site) {
@@ -311,7 +363,7 @@ public class FS_Controller {
 			if (site.equals("")) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
 			// Find file
-			File file = fileService.findById(uuid, owner);
+			File file = fileService.findFilesById(uuid, owner);
 			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
 			// Delete deployment request

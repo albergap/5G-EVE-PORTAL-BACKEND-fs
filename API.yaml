@@ -11,7 +11,7 @@ paths:
     get:
       tags:
         - Files
-      summary: Get all files owned (if the user is a developer), get all files with a site managed (if the user is a manager)
+      summary: Get all files owned if the user is developer. Get all files with sites managed if the user is manager
       security:
         - bearerAuth: []
       responses:
@@ -137,10 +137,110 @@ paths:
           description: when the user authenticated does not have access to file
         '404':
           description: when the file does not exist
-  /fs/deploy/{uuid}/{owner}:
+  /fs/deployment_request/{uuid}/{owner}:
+    get: # TODO
+      tags:
+        - Deployment requests
+      summary: Get deployment requests of file
+      parameters:
+        - in: path
+          name: uuid
+          description: uuid of file
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: owner
+          description: owner of file
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: site
+          description: deployment site to filter
+          required: false
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: list of deployment requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeploymentRequest'
+        '204':
+          description: no content
+        '401':
+          description: unauthorized
+        '403':
+          description: when the user authenticated does not have access to file
+        '404':
+          description: not found
+    post: # TODO
+      tags:
+        - Deployment requests
+      summary: Add deployment requests
+      parameters:
+        - in: path
+          name: uuid
+          description: uuid of file
+          required: true
+          schema:
+            type: string
+        - in: path
+          name: owner
+          description: owner of file
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: deployment requests to add
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/DeploymentRequest'
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: ok
+        '401':
+          description: unauthorized
+        '403':
+          description: when the user authenticated does not have access to file
+        '404':
+          description: not found
+    delete:
+      tags:
+        - Deployment requests
+      summary: Delete a deployment request
+      parameters:
+        - in: query
+          name: site
+          description: site of deployment request
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: file removed
+        '401':
+          description: unauthorized
+        '404':
+          description: the file or deployment request does not exists
+  /fs/deployment_request/deploy/{uuid}/{owner}:
     put:
       tags:
-        - Files
+        - Deployment requests
       summary: Deploy a VNF
       parameters:
         - in: path
@@ -180,39 +280,6 @@ paths:
           description: unauthorized
         '404':
           description: the file does not exists
-  /fs/deployment_request:
-    delete:
-      tags:
-        - Deployment requests
-      summary: Delete a deployment request
-      parameters:
-        - in: path
-          name: uuid
-          description: uuid of file
-          required: true
-          schema:
-            type: string
-        - in: path
-          name: owner
-          description: owner of file
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: site
-          description: site of deployment request
-          required: true
-          schema:
-            type: string
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: file removed
-        '401':
-          description: unauthorized
-        '404':
-          description: the file or deployment request does not exists
 components:
   schemas:
     File:

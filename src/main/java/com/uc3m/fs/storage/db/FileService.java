@@ -19,7 +19,7 @@ import com.uc3m.fs.storage.db.entities.Site;
 @Service
 public class FileService {
 
-	private final String STATUS_DEPLOY = "FOR_DEPLOY", STATUS_DEPLOYED = "DEPLOYED";
+	private static final String STATUS_DEPLOY = "FOR_DEPLOY", STATUS_DEPLOYED = "DEPLOYED";
 
 	private FileRepository fileRepository;
 	private DeploymentRequestRepository deploymentRequestRepository;
@@ -30,27 +30,21 @@ public class FileService {
 		this.deploymentRequestRepository = deploymentRequestRepository;
 	}
 
-	/**
-	 * Get all files of DB
-	 */
-	public List<File> listAll() {
+	/*public List<File> getAllFiles() {
 		List<File> files = new ArrayList<>();
 		fileRepository.findAll().forEach(files::add);
 		return files;
-	}
+	}*/
 
-	/**
-	 * Find file by id
-	 */
-	public File findById(String uuid, String owner) {
+	public File findFilesById(String uuid, String owner) {
 		return fileRepository.findById(new FilePK(uuid, owner)).orElse(null);
 	}
 
 	/**
-	 * Insert file and deployment requests (sites)
+	 * Insert file and deployment requests
 	 */
 	@Transactional
-	public File save(File file, String[] sites) throws DBException {
+	public File saveFile(File file, String[] sites) throws DBException {
 		try {
 			fileRepository.save(file);
 			ArrayList<DeploymentRequest> requests = new ArrayList<>(sites.length);
@@ -68,12 +62,9 @@ public class FileService {
 		}
 	}
 
-	/**
-	 * Deploy deployment request
-	 */
 	@Transactional
-	public void deploy(String uuid, String owner, String site) throws DBFileNotFoundException, Exception {
-		File f = findById(uuid, owner);
+	public void deployDeploymentRequest(String uuid, String owner, String site) throws DBFileNotFoundException, Exception {
+		File f = findFilesById(uuid, owner);
 		if (f == null) throw new DBFileNotFoundException(uuid + " file not found");
 
 		boolean updated = false;
@@ -90,14 +81,11 @@ public class FileService {
 		if (!updated) throw new DBFileNotFoundException(uuid + " file not found");
 	}
 
-	/**
-	 * Delete file by id
-	 */
-	public void deleteById(String uuid, String owner) {
+	public void deleteFileById(String uuid, String owner) {
 		fileRepository.deleteById(new FilePK(uuid, owner));
 	}
 	/**
-	 * Delete deployment request. If is the last request remove file
+	 * Delete deployment request. If is the last request -> remove file
 	 * @return {@link Boolean} if it was the last request
 	 */
 	public boolean deleteDeploymentRequest(File file, String site) throws DBFileNotFoundException {
@@ -116,29 +104,20 @@ public class FileService {
 		throw new DBFileNotFoundException("There is no deployment request with " + site);
 	}
 
-	/**
-	 * Find files by owner
-	 */
-	public List<File> findByOwner(String owner) {
+	public List<File> findFilesByOwner(String owner) {
 		return fileRepository.findByOwner(owner);
 	}
 
-	/**
-	 * Find files by site
-	 */
-	public List<DeploymentRequest> findBySite(String site) {
+	public List<DeploymentRequest> findDeploymentRequestsBySite(String site) {
 		return deploymentRequestRepository.findBySiteBean(new Site(site));
 	}
 
-	/**
-	 * Find files by sites
-	 */
 	@Transactional
-	public List<DeploymentRequest> findBySites(String[] sites) {
+	public List<DeploymentRequest> findDeploymentRequestsBySites(String[] sites) {
 		List<DeploymentRequest> deploymentRequest = new ArrayList<>();
 		// For every site we'll find managed files
 		for (String s : sites)
-			deploymentRequest.addAll(findBySite(s));
+			deploymentRequest.addAll(findDeploymentRequestsBySite(s));
 
 		return deploymentRequest;
 	}
