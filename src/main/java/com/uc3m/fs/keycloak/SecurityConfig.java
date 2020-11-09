@@ -16,12 +16,18 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 @KeycloakConfiguration
 public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 
+	private static final boolean ENABLE_SECURITY = true;
+
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		super.configure(http);
-		http.csrf().disable()
-		.authorizeRequests()
-		.anyRequest().authenticated();
+		if (ENABLE_SECURITY) {
+			http.csrf().disable()
+			.authorizeRequests()
+			.anyRequest().authenticated();
+		} else {
+			http.csrf().disable().authorizeRequests().anyRequest().permitAll();
+		}
 	}
 
 	@Autowired

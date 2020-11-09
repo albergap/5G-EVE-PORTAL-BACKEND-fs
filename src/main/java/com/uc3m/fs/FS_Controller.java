@@ -186,7 +186,7 @@ public class FS_Controller {
 	public ResponseEntity<Void> upload(// Body params
 			@RequestPart(name = "file", required = true) MultipartFile file,
 			@RequestParam(name = "uuid", required = true) String uuid,
-			@RequestParam(name = "List<site>", required = true) String[] sites,
+			@RequestParam(name = "sites", required = true) String[] sites,
 			HttpServletRequest request) {
 		String idUser = null;
 		try {
@@ -296,6 +296,7 @@ public class FS_Controller {
 			@RequestParam(required = false) String site,
 			HttpServletRequest request) {
 		try {
+			// Get file
 			File file = fileService.findFilesById(uuid, owner);
 			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
@@ -322,10 +323,19 @@ public class FS_Controller {
 	public ResponseEntity<?> addDeploymentRequests(// TODO
 			@PathVariable(required = true) String uuid,
 			@PathVariable(required = true) String owner,
-			@RequestBody(required = true) DeploymentRequestResponse deploymentRequest,
+			@RequestBody(required = true) String[] sites,
 			HttpServletRequest request) {
 		try {
+			// Params validation
+			if (sites.length == 0) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			for (int i = 0; i < sites.length; i++)
+				if (sites[i].isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
+			// Get file
+			File file = fileService.findFilesById(uuid, owner);
+			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+			fileService.insertDeploymentRequests(file, sites);
 			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (Exception e) {
 			e.printStackTrace();

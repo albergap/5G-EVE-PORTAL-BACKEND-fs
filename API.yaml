@@ -39,7 +39,7 @@ paths:
           schema:
             type: string
         - in: header
-          name: List<site>
+          name: sites
           description: list of sites for deploy
           required: true
           schema:
@@ -205,7 +205,7 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/DeploymentRequest'
+                type: string
       security:
         - bearerAuth: []
       responses:
