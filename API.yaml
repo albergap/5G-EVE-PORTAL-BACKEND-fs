@@ -207,7 +207,7 @@ paths:
               items:
                 type: string
       security:
-        - bearerAuth: []
+        - bearerAuthDeveloper: []
       responses:
         '200':
           description: ok
@@ -229,7 +229,7 @@ paths:
           schema:
             type: string
       security:
-        - bearerAuth: []
+        - bearerAuthDeveloper: []
       responses:
         '200':
           description: file removed
@@ -262,7 +262,7 @@ paths:
           schema:
             type: string
       security:
-        - bearerAuth: []
+        - bearerAuthManager: []
       responses:
         '200':
           description: file deployed

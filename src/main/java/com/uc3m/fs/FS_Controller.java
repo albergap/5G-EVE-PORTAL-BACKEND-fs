@@ -34,7 +34,7 @@ import com.uc3m.fs.exceptions.DBException;
 import com.uc3m.fs.exceptions.DBFileNotFoundException;
 import com.uc3m.fs.exceptions.FSFileAlreadyExistsException;
 import com.uc3m.fs.exceptions.FSFileNotFoundException;
-import com.uc3m.fs.keycloak.KeycloakUtil;
+import com.uc3m.fs.keycloak.RequestProperties;
 import com.uc3m.fs.model.DeploymentRequestResponse;
 import com.uc3m.fs.model.FileResponse;
 import com.uc3m.fs.rbac.RBACRestService;
@@ -46,10 +46,8 @@ import com.uc3m.fs.storage.fs.StorageService;
 @RestController
 public class FS_Controller {
 
-	private static final boolean DO_SOMETHING = false;
-
-	private static final String PATH = "fs", PATH_ID_PARAMETERS = "{uuid}/{owner}", PATH_DOWNLOAD = "fs/download",
-			PATH_DEPLOYMET_REQUEST = PATH + "/deployment_request", PATH_DEPLOY = PATH_DEPLOYMET_REQUEST + "/deploy";
+	private static final String PARENT_PATH = "fs", PATH_ID_PARAMETERS = "{uuid}/{owner}",
+			PATH_DEPLOYMET_REQUEST = PARENT_PATH + "/deployment_request";
 
 	@Autowired
 	private FileService fileService;
@@ -76,43 +74,35 @@ public class FS_Controller {
 
 	// -------------------- Auxiliar functions --------------------
 
-	private static boolean ownership(HttpServletRequest request, File file) {
-		boolean userRole = KeycloakUtil.isUserRole(request);
-		if (!userRole) return false;
-		String userId = KeycloakUtil.getIdUser(request);
-		return (userRole && userId.equals(file.getId().getOwner()));
+	private static boolean isFileOwnership(RequestProperties request, File file) {
+		return request.developerRole && request.getUserId().equals(file.getId().getOwner());
 	}
-	private static boolean managed(HttpServletRequest request, File file) throws Exception {
-		if (!KeycloakUtil.isManagerRole(request)) return false;
+	private static boolean isFileManaged(String bearerToken, RequestProperties request, File file) throws Exception {
+		if (request.managerRole) {
+			// Get all sites of file, auxiliar variable
+			String[] sitesFile = new String[file.getDeploymentRequests().size()];
+			for (int i = 0; i < sitesFile.length; i++)
+				sitesFile[i] = file.getDeploymentRequests().get(i).getSite();
 
-		// Get all sites of file, auxiliar variable
-		String[] sitesFile = new String[file.getDeploymentRequests().size()];
-		for (int i = 0; i < sitesFile.length; i++)
-			sitesFile[i] = file.getDeploymentRequests().get(i).getSite();
-
-		// Check if is managed
-		String[] sitesUser = RBACRestService.getSitesOfUser(request.getHeader(HttpHeaders.AUTHORIZATION));
-		for (int i = 0; i < sitesFile.length; i++) {
-			// If a site is managed -> access
-			for (int j = 0; j < sitesUser.length; j++)
-				if (sitesFile[i].equals(sitesUser[j])) {
-					return true;
-				}
+			// Check if is managed
+			String[] sitesUser = RBACRestService.getSitesOfUser(bearerToken);
+			for (int i = 0; i < sitesFile.length; i++) {
+				// If a site is managed -> access
+				for (int j = 0; j < sitesUser.length; j++)
+					if (sitesFile[i].equals(sitesUser[j])) return true;
+			}
 		}
 		return false;
 	}
-
-	private static boolean authorizedAccessFile(HttpServletRequest request, File file) throws Exception {
-		if (ownership(request, file)) return true;
-		if (managed(request, file)) return true;
-		return false;
+	private static boolean verifyAuthorizedFileAccess(HttpServletRequest request, RequestProperties requestProperties, File file) throws Exception {
+		return isFileOwnership(requestProperties, file) || isFileManaged(request.getHeader(HttpHeaders.AUTHORIZATION), requestProperties, file);
 	}
 
 	// -------------------- File methods functions --------------------
 
 	/**
 	 * Create FileResponses for every file
-	 * Example: 2 DeploymentRequest with the same file and different sites will result 1 FileResponse with 2 sites in the list
+	 * EXAMPLE: 2 DeploymentRequest (different sites) in the same file will result 1 FileResponse with 2 sites in the list
 	 */
 	private static List<FileResponse> getFilesBySites(List<DeploymentRequest> deploymentRequest) {
 		List<FileResponse> result = new ArrayList<FileResponse>(deploymentRequest.size());
@@ -144,19 +134,22 @@ public class FS_Controller {
 		return result;
 	}
 
-	@GetMapping(value = PATH + "/" + PATH_ID_PARAMETERS)
+	@GetMapping(value = PARENT_PATH + "/" + PATH_ID_PARAMETERS)
 	public ResponseEntity<FileResponse> getInfoFile(
 			@PathVariable(required = true) String uuid,
 			@PathVariable(required = true) String owner,
 			HttpServletRequest request) {
-		if (!DO_SOMETHING) return new ResponseEntity<>(HttpStatus.OK);
 		try {
+			RequestProperties rProp = new RequestProperties(request);
+			// Allowed both roles
+			if (rProp.notAuthenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
 			// Exists in DB
 			File file = fileService.findFilesById(uuid, owner);
 			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
 			// Verify access
-			if (!authorizedAccessFile(request, file)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+			if (!verifyAuthorizedFileAccess(request, rProp, file)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
 			return new ResponseEntity<FileResponse>(new FileResponse(file), HttpStatus.OK);
 		} catch (HttpClientErrorException e) {
@@ -170,17 +163,20 @@ public class FS_Controller {
 		}
 	}
 
-	@GetMapping(value = PATH_DOWNLOAD + "/" + PATH_ID_PARAMETERS, produces="application/zip")
+	@GetMapping(value = PARENT_PATH + "/download" + PATH_ID_PARAMETERS, produces="application/zip")
 	public ResponseEntity<InputStreamResource> download(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner,
 			HttpServletRequest request, HttpServletResponse response) {
-		if (!DO_SOMETHING) return new ResponseEntity<>(HttpStatus.OK);
 		try {
+			RequestProperties rProp = new RequestProperties(request);
+			// Allowed both roles
+			if (rProp.notAuthenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
 			// Exists in DB
 			File file = fileService.findFilesById(uuid, owner);
 			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
 			// Verify access
-			if (!authorizedAccessFile(request, file)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+			if (!verifyAuthorizedFileAccess(request, rProp, file)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
 			// Read file
 			Resource fileRead = storageService.readFile(uuid, file.getId().getOwner());
@@ -201,16 +197,19 @@ public class FS_Controller {
 		}
 	}
 
-	@PostMapping(value = PATH, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PostMapping(value = PARENT_PATH, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@ResponseBody
 	public ResponseEntity<Void> upload(// Form params
 			@RequestPart(name = "file", required = true) MultipartFile file,
 			@RequestParam(name = "uuid", required = true) String uuid,
 			@RequestParam(name = "sites", required = true) String[] sites,
 			HttpServletRequest request) {
-		if (!DO_SOMETHING) return new ResponseEntity<>(HttpStatus.OK);
-		String idUser = null;
+		String idDeveloper = null;
 		try {
+			RequestProperties rProp = new RequestProperties(request);
+			// Allowed ROLE_DEVELOPER
+			if (rProp.notAuthenticated || !rProp.developerRole) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
 			// Params validation
 			if (uuid.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
@@ -218,19 +217,19 @@ public class FS_Controller {
 				if (sites[i].isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
 			// Save file to DB
-			idUser = KeycloakUtil.getIdUser(request);
-			File f = new File(uuid, idUser);
+			idDeveloper = rProp.getUserId();
+			File f = new File(uuid, idDeveloper);
 			fileService.saveFile(f, sites);
 
 			// Save file to persistence
-			storageService.store(file, uuid, idUser);
+			storageService.store(file, uuid, idDeveloper);
 
 			return new ResponseEntity<>(HttpStatus.ACCEPTED);
 		} catch (FSFileAlreadyExistsException e) {
 			return new ResponseEntity<>(HttpStatus.CONFLICT);
 		} catch (Exception e) {
 			try {
-				fileService.deleteFileById(uuid, idUser);
+				fileService.deleteFileById(uuid, idDeveloper);
 			} catch (Exception e1) {
 				e1.printStackTrace();
 				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -240,20 +239,19 @@ public class FS_Controller {
 		}
 	}
 
-	@GetMapping(value = PATH)
+	@GetMapping(value = PARENT_PATH)
 	public ResponseEntity<List<FileResponse>> listFiles(HttpServletRequest request) {
-		if (!DO_SOMETHING) return new ResponseEntity<>(HttpStatus.OK);
 		try {
+			RequestProperties rProp = new RequestProperties(request);
+			// Allowed both roles
+			if (rProp.notAuthenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
 			List<FileResponse> result = null;
 
-			// Keycloak info
-			String userId = KeycloakUtil.getIdUser(request);
-			boolean userRole = KeycloakUtil.isUserRole(request), managerRole = KeycloakUtil.isManagerRole(request);
-
 			// Add files owned
-			if (userRole) {
+			if (rProp.developerRole) {
 				// Get file
-				List<File> files = fileService.findFilesByOwner(userId);
+				List<File> files = fileService.findFilesByOwner(rProp.getUserId());
 				if (files.size() == 0) return new ResponseEntity<>(HttpStatus.NO_CONTENT);
 
 				// Convert to array of FileResponse
@@ -274,7 +272,7 @@ public class FS_Controller {
 				}
 			}
 			// Add files of managed sites
-			if (managerRole) {
+			if (rProp.managerRole) {
 				String[] sites = RBACRestService.getSitesOfUser(request.getHeader(HttpHeaders.AUTHORIZATION));
 				// Add all files with his sites
 				result = getFilesBySites(fileService.findDeploymentRequestsBySites(sites));
@@ -292,10 +290,13 @@ public class FS_Controller {
 		}
 	}
 
-	@DeleteMapping(value = PATH + "/" + PATH_ID_PARAMETERS)
+	@DeleteMapping(value = PARENT_PATH + "/" + PATH_ID_PARAMETERS)
 	public ResponseEntity<?> deleteFile(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner, HttpServletRequest request) {
-		if (!DO_SOMETHING) return new ResponseEntity<>(HttpStatus.OK);
 		try {
+			RequestProperties rProp = new RequestProperties(request);
+			// Allowed ROLE_DEVELOPER
+			if (rProp.notAuthenticated || !rProp.developerRole) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
 			// Get file
 			File file = fileService.findFilesById(uuid, owner);
 			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -320,14 +321,17 @@ public class FS_Controller {
 			@PathVariable(required = true) String owner,
 			@RequestParam(required = false) String site,
 			HttpServletRequest request) {
-		if (!DO_SOMETHING) return new ResponseEntity<>(HttpStatus.OK);
 		try {
+			RequestProperties rProp = new RequestProperties(request);
+			// Allowed both roles
+			if (rProp.notAuthenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
 			// Get file
 			File file = fileService.findFilesById(uuid, owner);
 			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
 			// Verify access
-			if (!authorizedAccessFile(request, file)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+			if (!verifyAuthorizedFileAccess(request, rProp, file)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
 			// Get deployment requests
 			List<DeploymentRequest> dr = file.getDeploymentRequests();
@@ -351,8 +355,11 @@ public class FS_Controller {
 			@PathVariable(required = true) String owner,
 			@RequestBody(required = true) String[] sites,
 			HttpServletRequest request) {
-		if (!DO_SOMETHING) return new ResponseEntity<>(HttpStatus.OK);
 		try {
+			RequestProperties rProp = new RequestProperties(request);
+			// Allowed ROLE_DEVELOPER
+			if (rProp.notAuthenticated || !rProp.developerRole) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
 			// Params validation
 			if (sites.length == 0) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 			for (int i = 0; i < sites.length; i++)
@@ -370,14 +377,18 @@ public class FS_Controller {
 		}
 	}
 
-	@PutMapping(value = PATH_DEPLOY + "/" + PATH_ID_PARAMETERS)
+	@PutMapping(value = PATH_DEPLOYMET_REQUEST + "/deploy/" + PATH_ID_PARAMETERS)
 	public ResponseEntity<?> deployDeploymentRequest(
 			@PathVariable(required = true) String uuid,
 			@PathVariable(required = true) String owner,
 			@RequestParam(required = true) String site,
 			HttpServletRequest request) {
-		if (!DO_SOMETHING) return new ResponseEntity<>(HttpStatus.OK);
 		try {
+			RequestProperties rProp = new RequestProperties(request);
+			// Allowed ROLE_MANAGER
+			if (rProp.notAuthenticated || !rProp.managerRole) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
+			// Params validation
 			if (site.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
 			// Deploy
@@ -396,9 +407,14 @@ public class FS_Controller {
 	@DeleteMapping(value = PATH_DEPLOYMET_REQUEST + "/" + PATH_ID_PARAMETERS)
 	public ResponseEntity<?> deleteDeploymentRequest(@PathVariable(required = true) String uuid,
 			@PathVariable(required = true) String owner,
-			@RequestParam(required = true) String site) {
-		if (!DO_SOMETHING) return new ResponseEntity<>(HttpStatus.OK);
+			@RequestParam(required = true) String site,
+			HttpServletRequest request) {
 		try {
+			RequestProperties rProp = new RequestProperties(request);
+			// Allowed ROLE_DEVELOPER
+			if (rProp.notAuthenticated || !rProp.developerRole) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
+			// Params validation
 			if (site.equals("")) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
 			// Find file

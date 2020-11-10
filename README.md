@@ -34,8 +34,8 @@ PostgreSQL database and a role with permissions
 - `PATH_LIST`: path of list URL
 - `PATH_DEPLOY`: path of deploy URL
 - `PATH_RBAC_MANAGED_SITES`: URL of RBAC managed sites
-- `ROLE_SITE_MANAGER`: manager role of Keycloak
-- `ROLE_USER`: developer role of Keycloak
+- `ROLE_MANAGER`: manager role of Keycloak
+- `ROLE_DEVELOPER`: developer role of Keycloak
 
 ## src/main/resources/application.properties
 - `server.port`: port
