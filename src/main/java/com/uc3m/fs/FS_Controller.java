@@ -46,6 +46,8 @@ import com.uc3m.fs.storage.fs.StorageService;
 @RestController
 public class FS_Controller {
 
+	private static final boolean DO_SOMETHING = false;
+
 	private static final String PATH = "fs", PATH_ID_PARAMETERS = "{uuid}/{owner}", PATH_DOWNLOAD = "fs/download",
 			PATH_DEPLOYMET_REQUEST = PATH + "/deployment_request", PATH_DEPLOY = PATH_DEPLOYMET_REQUEST + "/deploy";
 
@@ -143,8 +145,11 @@ public class FS_Controller {
 	}
 
 	@GetMapping(value = PATH + "/" + PATH_ID_PARAMETERS)
-	public ResponseEntity<FileResponse> getInfoFile(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner,
-			HttpServletRequest request, HttpServletResponse response) {
+	public ResponseEntity<FileResponse> getInfoFile(
+			@PathVariable(required = true) String uuid,
+			@PathVariable(required = true) String owner,
+			HttpServletRequest request) {
+		if (!DO_SOMETHING) return new ResponseEntity<>(HttpStatus.OK);
 		try {
 			// Exists in DB
 			File file = fileService.findFilesById(uuid, owner);
@@ -168,6 +173,7 @@ public class FS_Controller {
 	@GetMapping(value = PATH_DOWNLOAD + "/" + PATH_ID_PARAMETERS, produces="application/zip")
 	public ResponseEntity<InputStreamResource> download(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner,
 			HttpServletRequest request, HttpServletResponse response) {
+		if (!DO_SOMETHING) return new ResponseEntity<>(HttpStatus.OK);
 		try {
 			// Exists in DB
 			File file = fileService.findFilesById(uuid, owner);
@@ -197,11 +203,12 @@ public class FS_Controller {
 
 	@PostMapping(value = PATH, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@ResponseBody
-	public ResponseEntity<Void> upload(// Body params
+	public ResponseEntity<Void> upload(// Form params
 			@RequestPart(name = "file", required = true) MultipartFile file,
 			@RequestParam(name = "uuid", required = true) String uuid,
 			@RequestParam(name = "sites", required = true) String[] sites,
 			HttpServletRequest request) {
+		if (!DO_SOMETHING) return new ResponseEntity<>(HttpStatus.OK);
 		String idUser = null;
 		try {
 			// Params validation
@@ -235,6 +242,7 @@ public class FS_Controller {
 
 	@GetMapping(value = PATH)
 	public ResponseEntity<List<FileResponse>> listFiles(HttpServletRequest request) {
+		if (!DO_SOMETHING) return new ResponseEntity<>(HttpStatus.OK);
 		try {
 			List<FileResponse> result = null;
 
@@ -285,7 +293,8 @@ public class FS_Controller {
 	}
 
 	@DeleteMapping(value = PATH + "/" + PATH_ID_PARAMETERS)
-	public ResponseEntity<?> deleteFile(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner) {
+	public ResponseEntity<?> deleteFile(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner, HttpServletRequest request) {
+		if (!DO_SOMETHING) return new ResponseEntity<>(HttpStatus.OK);
 		try {
 			// Get file
 			File file = fileService.findFilesById(uuid, owner);
@@ -305,12 +314,13 @@ public class FS_Controller {
 
 	// -------------------- Deployment requests methods functions --------------------
 
-	@PutMapping(value = PATH_DEPLOYMET_REQUEST + "/" + PATH_ID_PARAMETERS)
+	@GetMapping(value = PATH_DEPLOYMET_REQUEST + "/" + PATH_ID_PARAMETERS)
 	public ResponseEntity<List<DeploymentRequestResponse>> getDeploymentRequests(// TODO
 			@PathVariable(required = true) String uuid,
 			@PathVariable(required = true) String owner,
 			@RequestParam(required = false) String site,
 			HttpServletRequest request) {
+		if (!DO_SOMETHING) return new ResponseEntity<>(HttpStatus.OK);
 		try {
 			// Get file
 			File file = fileService.findFilesById(uuid, owner);
@@ -341,6 +351,7 @@ public class FS_Controller {
 			@PathVariable(required = true) String owner,
 			@RequestBody(required = true) String[] sites,
 			HttpServletRequest request) {
+		if (!DO_SOMETHING) return new ResponseEntity<>(HttpStatus.OK);
 		try {
 			// Params validation
 			if (sites.length == 0) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -365,6 +376,7 @@ public class FS_Controller {
 			@PathVariable(required = true) String owner,
 			@RequestParam(required = true) String site,
 			HttpServletRequest request) {
+		if (!DO_SOMETHING) return new ResponseEntity<>(HttpStatus.OK);
 		try {
 			if (site.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
@@ -385,6 +397,7 @@ public class FS_Controller {
 	public ResponseEntity<?> deleteDeploymentRequest(@PathVariable(required = true) String uuid,
 			@PathVariable(required = true) String owner,
 			@RequestParam(required = true) String site) {
+		if (!DO_SOMETHING) return new ResponseEntity<>(HttpStatus.OK);
 		try {
 			if (site.equals("")) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
@@ -409,33 +422,6 @@ public class FS_Controller {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-	}
-
-
-	@GetMapping(value = "fs/kk")
-	public ResponseEntity<?> f1() {
-		System.out.println("F1");
-		return new ResponseEntity<>(HttpStatus.OK);
-	}
-	@GetMapping(value = "fs/kk/jj")
-	public ResponseEntity<?> f2() {
-		System.out.println("F2");
-		return new ResponseEntity<>(HttpStatus.OK);
-	}
-	@GetMapping(value = "fs/kk/jj/ll")
-	public ResponseEntity<?> f3() {
-		System.out.println("F3");
-		return new ResponseEntity<>(HttpStatus.OK);
-	}
-	@GetMapping(value = "fs/kk/{p1}")
-	public ResponseEntity<?> f4(@PathVariable(required = true) String p1) {
-		System.out.println("F4");
-		return new ResponseEntity<>(HttpStatus.OK);
-	}
-	@GetMapping(value = "fs/kk/{p1}/{p2}")
-	public ResponseEntity<?> f5(@PathVariable(required = true) String p1, @PathVariable(required = true) String p2) {
-		System.out.println("F5");
-		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 }

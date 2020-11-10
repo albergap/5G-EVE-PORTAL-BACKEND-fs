@@ -95,7 +95,7 @@ paths:
           schema:
             type: string
       security:
-        - bearerAuth: []
+        - bearerAuthDeveloper: []
       responses:
         '200':
           description: file removed

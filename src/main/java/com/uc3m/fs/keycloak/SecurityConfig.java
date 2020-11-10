@@ -16,7 +16,7 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 @KeycloakConfiguration
 public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 
-	private static final boolean ENABLE_SECURITY = true;
+	private static final boolean ENABLE_SECURITY = false;// TODO
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
@@ -25,6 +25,10 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 			http.csrf().disable()
 			.authorizeRequests()
 			.anyRequest().authenticated();
+			/*http.csrf().disable()// TODO duplicar permisos de esta forma
+			.authorizeRequests()
+			.antMatchers("/fs/").hasRole(Config.ROLE_USER)
+			.anyRequest().permitAll();*/
 		} else {
 			http.csrf().disable().authorizeRequests().anyRequest().permitAll();
 		}
