@@ -401,7 +401,7 @@
 					"script": {
 						"id": "de3bb494-195a-4365-a718-09c536a504d4",
 						"exec": [
-							"pm.environment.set('access_token_user', \"Bearer \" + pm.response.json().access_token)"
+							"pm.environment.set('access_token_developer', \"Bearer \" + pm.response.json().access_token)"
 						],
 						"type": "text/javascript"
 					}
@@ -884,7 +884,7 @@
 					"script": {
 						"id": "9794934f-22cb-4ab0-b2f8-c818f38e694a",
 						"exec": [
-							"pm.environment.set('access_token_admin', \"Bearer \" + pm.response.json().access_token)"
+							"pm.environment.set('access_token_manager', \"Bearer \" + pm.response.json().access_token)"
 						],
 						"type": "text/javascript"
 					}
