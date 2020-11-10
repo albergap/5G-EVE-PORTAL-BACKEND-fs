@@ -46,8 +46,7 @@ import com.uc3m.fs.storage.fs.StorageService;
 @RestController
 public class FS_Controller {
 
-	private static final String PARENT_PATH = "fs", PATH_ID_PARAMETERS = "{uuid}/{owner}",
-			PATH_DEPLOYMET_REQUEST = PARENT_PATH + "/deployment_request";
+	private static final String PARENT_PATH = "fs", PATH_ID_PARAMETERS = "{uuid}/{owner}", PATH_DEPLOYMET_REQUEST = PARENT_PATH + "/deployment_request";
 
 	@Autowired
 	private FileService fileService;
@@ -141,8 +140,8 @@ public class FS_Controller {
 			HttpServletRequest request) {
 		try {
 			RequestProperties rProp = new RequestProperties(request);
+			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed both roles
-			if (rProp.notAuthenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
 			// Exists in DB
 			File file = fileService.findFilesById(uuid, owner);
@@ -163,13 +162,13 @@ public class FS_Controller {
 		}
 	}
 
-	@GetMapping(value = PARENT_PATH + "/download" + PATH_ID_PARAMETERS, produces="application/zip")
+	@GetMapping(value = PARENT_PATH + "/download/" + PATH_ID_PARAMETERS, produces="application/zip")
 	public ResponseEntity<InputStreamResource> download(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner,
 			HttpServletRequest request, HttpServletResponse response) {
 		try {
 			RequestProperties rProp = new RequestProperties(request);
+			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed both roles
-			if (rProp.notAuthenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
 			// Exists in DB
 			File file = fileService.findFilesById(uuid, owner);
@@ -207,8 +206,9 @@ public class FS_Controller {
 		String idDeveloper = null;
 		try {
 			RequestProperties rProp = new RequestProperties(request);
+			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed ROLE_DEVELOPER
-			if (rProp.notAuthenticated || !rProp.developerRole) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+			if (!rProp.developerRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
 			// Params validation
 			if (uuid.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -243,8 +243,8 @@ public class FS_Controller {
 	public ResponseEntity<List<FileResponse>> listFiles(HttpServletRequest request) {
 		try {
 			RequestProperties rProp = new RequestProperties(request);
+			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed both roles
-			if (rProp.notAuthenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
 			List<FileResponse> result = null;
 
@@ -294,8 +294,9 @@ public class FS_Controller {
 	public ResponseEntity<?> deleteFile(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner, HttpServletRequest request) {
 		try {
 			RequestProperties rProp = new RequestProperties(request);
+			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed ROLE_DEVELOPER
-			if (rProp.notAuthenticated || !rProp.developerRole) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+			if (!rProp.developerRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
 			// Get file
 			File file = fileService.findFilesById(uuid, owner);
@@ -323,8 +324,8 @@ public class FS_Controller {
 			HttpServletRequest request) {
 		try {
 			RequestProperties rProp = new RequestProperties(request);
+			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed both roles
-			if (rProp.notAuthenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
 			// Get file
 			File file = fileService.findFilesById(uuid, owner);
@@ -357,8 +358,9 @@ public class FS_Controller {
 			HttpServletRequest request) {
 		try {
 			RequestProperties rProp = new RequestProperties(request);
+			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed ROLE_DEVELOPER
-			if (rProp.notAuthenticated || !rProp.developerRole) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+			if (!rProp.developerRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
 			// Params validation
 			if (sites.length == 0) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -385,8 +387,9 @@ public class FS_Controller {
 			HttpServletRequest request) {
 		try {
 			RequestProperties rProp = new RequestProperties(request);
+			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed ROLE_MANAGER
-			if (rProp.notAuthenticated || !rProp.managerRole) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+			if (!rProp.managerRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
 			// Params validation
 			if (site.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -411,8 +414,9 @@ public class FS_Controller {
 			HttpServletRequest request) {
 		try {
 			RequestProperties rProp = new RequestProperties(request);
+			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed ROLE_DEVELOPER
-			if (rProp.notAuthenticated || !rProp.developerRole) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+			if (!rProp.developerRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
 			// Params validation
 			if (site.equals("")) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
