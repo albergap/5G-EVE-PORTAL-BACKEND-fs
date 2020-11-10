@@ -14,7 +14,7 @@ import com.uc3m.fs.exceptions.KeycloakNotAuthenticated;
 public class RequestProperties {
 
 	private AccessToken accessToken;
-	public boolean managerRole, developerRole, notAuthenticated;
+	public boolean managerRole, developerRole, authenticated;
 
 	private static AccessToken getAccessToken(HttpServletRequest request) throws KeycloakNotAuthenticated {
 		KeycloakAuthenticationToken token = (KeycloakAuthenticationToken) request.getUserPrincipal();
@@ -26,30 +26,24 @@ public class RequestProperties {
 	public RequestProperties(HttpServletRequest request) {
 		try {
 			accessToken = getAccessToken(request);
-			managerRole = isManagerRole();
-			developerRole = isDeveloperRole();
-			notAuthenticated = false;
+			// If the AccessToken is created -> user authenticated on keycloak
+			authenticated = true;
+
+			managerRole = getUserRoles().contains(Config.ROLE_MANAGER);
+			developerRole = getUserRoles().contains(Config.ROLE_DEVELOPER);
 		} catch (KeycloakNotAuthenticated e) {
-			managerRole = developerRole = false;
-			notAuthenticated = true;
+			authenticated = managerRole = developerRole = false;
 		}
 	}
 
 	public String getUserId() {
-		if (notAuthenticated) return null;
+		if (!authenticated) return null;
 		return accessToken.getEmail();
 	}
 
 	public Set<String> getUserRoles() {
-		if (notAuthenticated) return null;
+		if (!authenticated) return null;
 		return accessToken.getRealmAccess().getRoles();
-	}
-
-	private boolean isDeveloperRole() {
-		return getUserRoles().contains(Config.ROLE_DEVELOPER);
-	}
-	private boolean isManagerRole() {
-		return getUserRoles().contains(Config.ROLE_MANAGER);
 	}
 
 }
