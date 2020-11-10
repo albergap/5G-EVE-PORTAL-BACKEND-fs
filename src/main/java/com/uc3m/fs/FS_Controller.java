@@ -46,8 +46,8 @@ import com.uc3m.fs.storage.fs.StorageService;
 @RestController
 public class FS_Controller {
 
-	private static final String PATH = "fs/", PATH_DOWNLOAD = "fs/download",
-			PATH_DEPLOYMET_REQUEST = "fs/deployment_request", PATH_DEPLOY = PATH_DEPLOYMET_REQUEST + "/deploy";
+	private static final String PATH = "fs", PATH_ID_PARAMETERS = "{uuid}/{owner}", PATH_DOWNLOAD = "fs/download",
+			PATH_DEPLOYMET_REQUEST = PATH + "/deployment_request", PATH_DEPLOY = PATH_DEPLOYMET_REQUEST + "/deploy";
 
 	@Autowired
 	private FileService fileService;
@@ -61,6 +61,18 @@ public class FS_Controller {
 	public void setProductService(FileService fileService) {
 		this.fileService = fileService;
 	}
+
+	@ExceptionHandler(ConstraintViolationException.class)
+	public ResponseEntity<?> handleConstraintViolationException(ConstraintViolationException e) {
+		return ResponseEntity.badRequest().build();
+	}
+
+	@ExceptionHandler(MaxUploadSizeExceededException.class)
+	public ResponseEntity<?> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
+		return ResponseEntity.badRequest().build();
+	}
+
+	// -------------------- Auxiliar functions --------------------
 
 	private static boolean ownership(HttpServletRequest request, File file) {
 		boolean userRole = KeycloakUtil.isUserRole(request);
@@ -94,11 +106,13 @@ public class FS_Controller {
 		return false;
 	}
 
-	private static List<FileResponse> getFilesBySites(List<DeploymentRequest> deploymentRequest) {
-		// Create FileResponses for every file
-		// Example: 2 DeploymentRequest with the same file and different sites
-		// will result 1 FileResponse with 2 sites in the list
+	// -------------------- File methods functions --------------------
 
+	/**
+	 * Create FileResponses for every file
+	 * Example: 2 DeploymentRequest with the same file and different sites will result 1 FileResponse with 2 sites in the list
+	 */
+	private static List<FileResponse> getFilesBySites(List<DeploymentRequest> deploymentRequest) {
 		List<FileResponse> result = new ArrayList<FileResponse>(deploymentRequest.size());
 		for (int i = 0; i < deploymentRequest.size(); i++) {
 			boolean added = false;
@@ -128,7 +142,7 @@ public class FS_Controller {
 		return result;
 	}
 
-	@GetMapping(value = PATH + "/{uuid}/{owner}")
+	@GetMapping(value = PATH + "/" + PATH_ID_PARAMETERS)
 	public ResponseEntity<FileResponse> getInfoFile(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner,
 			HttpServletRequest request, HttpServletResponse response) {
 		try {
@@ -151,7 +165,7 @@ public class FS_Controller {
 		}
 	}
 
-	@GetMapping(value = PATH_DOWNLOAD + "/{uuid}/{owner}", produces="application/zip")
+	@GetMapping(value = PATH_DOWNLOAD + "/" + PATH_ID_PARAMETERS, produces="application/zip")
 	public ResponseEntity<InputStreamResource> download(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner,
 			HttpServletRequest request, HttpServletResponse response) {
 		try {
@@ -270,7 +284,7 @@ public class FS_Controller {
 		}
 	}
 
-	@DeleteMapping(value = PATH + "/{uuid}/{owner}")
+	@DeleteMapping(value = PATH + "/" + PATH_ID_PARAMETERS)
 	public ResponseEntity<?> deleteFile(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner) {
 		try {
 			// Get file
@@ -289,7 +303,9 @@ public class FS_Controller {
 		}
 	}
 
-	@PutMapping(value = PATH_DEPLOYMET_REQUEST + "/{uuid}/{owner}")
+	// -------------------- Deployment requests methods functions --------------------
+
+	@PutMapping(value = PATH_DEPLOYMET_REQUEST + "/" + PATH_ID_PARAMETERS)
 	public ResponseEntity<List<DeploymentRequestResponse>> getDeploymentRequests(// TODO
 			@PathVariable(required = true) String uuid,
 			@PathVariable(required = true) String owner,
@@ -319,7 +335,7 @@ public class FS_Controller {
 		}
 	}
 
-	@PostMapping(value = PATH_DEPLOYMET_REQUEST + "/{uuid}/{owner}")
+	@PostMapping(value = PATH_DEPLOYMET_REQUEST + "/" + PATH_ID_PARAMETERS)
 	public ResponseEntity<?> addDeploymentRequests(// TODO
 			@PathVariable(required = true) String uuid,
 			@PathVariable(required = true) String owner,
@@ -343,7 +359,7 @@ public class FS_Controller {
 		}
 	}
 
-	@PutMapping(value = PATH_DEPLOY + "/{uuid}/{owner}")
+	@PutMapping(value = PATH_DEPLOY + "/" + PATH_ID_PARAMETERS)
 	public ResponseEntity<?> deployDeploymentRequest(
 			@PathVariable(required = true) String uuid,
 			@PathVariable(required = true) String owner,
@@ -365,7 +381,7 @@ public class FS_Controller {
 		}
 	}
 
-	@DeleteMapping(value = PATH_DEPLOYMET_REQUEST + "/{uuid}/{owner}")
+	@DeleteMapping(value = PATH_DEPLOYMET_REQUEST + "/" + PATH_ID_PARAMETERS)
 	public ResponseEntity<?> deleteDeploymentRequest(@PathVariable(required = true) String uuid,
 			@PathVariable(required = true) String owner,
 			@RequestParam(required = true) String site) {
@@ -395,14 +411,31 @@ public class FS_Controller {
 		}
 	}
 
-	@ExceptionHandler(ConstraintViolationException.class)
-	public ResponseEntity<?> handleConstraintViolationException(ConstraintViolationException e) {
-		return ResponseEntity.badRequest().build();
-	}
 
-	@ExceptionHandler(MaxUploadSizeExceededException.class)
-	public ResponseEntity<?> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
-		return ResponseEntity.badRequest().build();
+	@GetMapping(value = "fs/kk")
+	public ResponseEntity<?> f1() {
+		System.out.println("F1");
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	@GetMapping(value = "fs/kk/jj")
+	public ResponseEntity<?> f2() {
+		System.out.println("F2");
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	@GetMapping(value = "fs/kk/jj/ll")
+	public ResponseEntity<?> f3() {
+		System.out.println("F3");
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	@GetMapping(value = "fs/kk/{p1}")
+	public ResponseEntity<?> f4(@PathVariable(required = true) String p1) {
+		System.out.println("F4");
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	@GetMapping(value = "fs/kk/{p1}/{p2}")
+	public ResponseEntity<?> f5(@PathVariable(required = true) String p1, @PathVariable(required = true) String p2) {
+		System.out.println("F5");
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 }

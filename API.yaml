@@ -47,7 +47,7 @@ paths:
             items:
               type: string
       security:
-        - bearerAuth: []
+        - bearerAuthDeveloper: []
       responses:
         '202':
           description: file accepted
@@ -302,5 +302,14 @@ components:
           type: string
   securitySchemes:
     bearerAuth:
+      description: Both roles
+      type: http
+      scheme: bearer
+    bearerAuthDeveloper:
+      description: Only developer role
+      type: http
+      scheme: bearer
+    bearerAuthManager:
+      description: Only manager role
       type: http
       scheme: bearer
