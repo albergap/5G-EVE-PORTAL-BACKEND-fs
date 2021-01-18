@@ -317,7 +317,7 @@ public class FS_Controller {
 	// -------------------- Deployment requests methods functions --------------------
 
 	@GetMapping(value = PATH_DEPLOYMET_REQUEST + "/" + PATH_ID_PARAMETERS)
-	public ResponseEntity<List<DeploymentRequestResponse>> getDeploymentRequests(// TODO
+	public ResponseEntity<List<DeploymentRequestResponse>> getDeploymentRequests(
 			@PathVariable(required = true) String uuid,
 			@PathVariable(required = true) String owner,
 			@RequestParam(required = false) String site,
@@ -325,14 +325,15 @@ public class FS_Controller {
 		try {
 			RequestProperties rProp = new RequestProperties(request);
 			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-			// Allowed both roles
+			// Allowed ROLE_DEVELOPER
+			if (!rProp.developerRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
 			// Get file
 			File file = fileService.findFilesById(uuid, owner);
 			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
 			// Verify access
-			if (!verifyAuthorizedFileAccess(request, rProp, file)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+			if (!isFileOwnership(rProp, file)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
 			// Get deployment requests
 			List<DeploymentRequest> dr = file.getDeploymentRequests();

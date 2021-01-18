@@ -54,7 +54,7 @@ paths:
         '401':
           description: unauthorized
         '403':
-          description: when the user authenticated does not have access to file
+          description: the user authenticated does not have access to file
         '409':
           description: that file already exists
   /fs/{uuid}/{owner}:
@@ -74,7 +74,7 @@ paths:
         '401':
           description: unauthorized
         '403':
-          description: when the user authenticated does not have access to file
+          description: the user authenticated does not have access to file
         '404':
           description: not found
     delete:
@@ -134,11 +134,11 @@ paths:
         '401':
           description: unauthorized
         '403':
-          description: when the user authenticated does not have access to file
+          description: the user authenticated does not have access to file
         '404':
           description: when the file does not exist
   /fs/deployment_request/{uuid}/{owner}:
-    get: # TODO
+    get:
       tags:
         - Deployment requests
       summary: Get deployment requests of file
@@ -177,7 +177,7 @@ paths:
         '401':
           description: unauthorized
         '403':
-          description: when the user authenticated does not have access to file
+          description: the user authenticated does not have access
         '404':
           description: not found
     post: # TODO
@@ -214,7 +214,7 @@ paths:
         '401':
           description: unauthorized
         '403':
-          description: when the user authenticated does not have access to file
+          description: the user authenticated does not have access to file
         '404':
           description: not found
     delete:
