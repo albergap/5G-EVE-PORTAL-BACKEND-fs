@@ -122,8 +122,19 @@ public class FileService {
 		return deploymentRequest;
 	}
 
-	public void insertDeploymentRequests(File file, String[] sites) {// TODO
-		
+	/**
+	 * Add deployment request. If one exists -> no adding and no error
+	 */
+	public void insertDeploymentRequests(File file, String[] sites) throws DBException {
+		try {
+			List<DeploymentRequest> dr = file.getDeploymentRequests();
+			for (int i = 0; i < sites.length; i++)
+				dr.add(new DeploymentRequest(new DeploymentRequestPK(file.getUuid(), file.getOwner(), sites[i]), file, new Site(sites[i]), STATUS_DEPLOY));
+
+			fileRepository.save(file);
+		} catch (Exception e) {
+			throw new DBException(e.getMessage(), e);
+		}
 	}
-	
+
 }

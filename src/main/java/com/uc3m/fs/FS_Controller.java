@@ -352,7 +352,7 @@ public class FS_Controller {
 	}
 
 	@PostMapping(value = PATH_DEPLOYMET_REQUEST + "/" + PATH_ID_PARAMETERS)
-	public ResponseEntity<?> addDeploymentRequests(// TODO
+	public ResponseEntity<?> addDeploymentRequests(
 			@PathVariable(required = true) String uuid,
 			@PathVariable(required = true) String owner,
 			@RequestBody(required = true) String[] sites,
@@ -374,6 +374,8 @@ public class FS_Controller {
 
 			fileService.insertDeploymentRequests(file, sites);
 			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (DBException e) {// For example: one site does not exist
+			return new ResponseEntity<>("" + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

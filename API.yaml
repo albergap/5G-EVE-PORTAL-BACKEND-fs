@@ -180,7 +180,7 @@ paths:
           description: the user authenticated does not have access
         '404':
           description: not found
-    post: # TODO
+    post:
       tags:
         - Deployment requests
       summary: Add deployment requests
@@ -216,7 +216,7 @@ paths:
         '403':
           description: the user authenticated does not have access to file
         '404':
-          description: not found
+          description: not found (file or site)
     delete:
       tags:
         - Deployment requests
