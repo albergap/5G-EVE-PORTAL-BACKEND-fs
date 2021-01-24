@@ -34,6 +34,7 @@ import com.uc3m.fs.exceptions.DBException;
 import com.uc3m.fs.exceptions.DBFileNotFoundException;
 import com.uc3m.fs.exceptions.FSFileAlreadyExistsException;
 import com.uc3m.fs.exceptions.FSFileNotFoundException;
+import com.uc3m.fs.exceptions.ParameterException;
 import com.uc3m.fs.keycloak.RequestProperties;
 import com.uc3m.fs.model.DeploymentRequestResponse;
 import com.uc3m.fs.model.FileResponse;
@@ -97,6 +98,48 @@ public class FS_Controller {
 		return isFileOwnership(requestProperties, file) || isFileManaged(request.getHeader(HttpHeaders.AUTHORIZATION), requestProperties, file);
 	}
 
+	private static void checkUuidParameter(String uuid) throws ParameterException {
+		if (uuid != null) {
+			if (uuid.length() > Config.UUID_MAX_LENGTH) throw new ParameterException("Maximun uuid length is " + Config.UUID_MAX_LENGTH);
+			if (uuid.isEmpty()) throw new ParameterException("Uuid is an empty string");
+		}
+	}
+	private static void checkOwnerParameter(String owner) throws ParameterException {
+		if (owner != null) {
+			if (owner.length() > Config.OWNER_MAX_LENGTH) throw new ParameterException("Maximun owner length is " + Config.UUID_MAX_LENGTH);
+			if (owner.isEmpty()) throw new ParameterException("Owner is an empty string");
+		}
+	}
+	private static void checkSitesParameter(String[] sites) throws ParameterException {
+		if (sites != null) {
+			if (sites.length == 0) throw new ParameterException("Sites must contain one site");
+			for (int i = 0; i < sites.length; i++) {
+				if (sites[i].isEmpty())
+					throw new ParameterException("At least one site is an empty string");
+				else if (sites[i].length() > Config.SITE_MAX_LENGTH)
+					throw new ParameterException("Maximun site length is " + Config.SITE_MAX_LENGTH);
+			}
+		}
+	}
+	private static void checkSiteParameter(String site) throws ParameterException {
+		if (site != null) {
+			if (site.length() > Config.SITE_MAX_LENGTH) throw new ParameterException("Maximun site length is " + Config.SITE_MAX_LENGTH);
+			if (site.isEmpty()) throw new ParameterException("Site is an empty string");
+		}
+	}
+	private static void checkParameters(String uuid, String owner) throws ParameterException {
+		checkUuidParameter(uuid);
+		checkOwnerParameter(owner);
+	}
+	private static void checkParameters(String uuid, String owner, String[] sites) throws ParameterException {
+		checkParameters(uuid, owner);
+		checkSitesParameter(sites);
+	}
+	private static void checkParameters(String uuid, String owner, String site) throws ParameterException {
+		checkParameters(uuid, owner);
+		checkSiteParameter(site);
+	}
+
 	// -------------------- File methods functions --------------------
 
 	/**
@@ -134,11 +177,11 @@ public class FS_Controller {
 	}
 
 	@GetMapping(value = PARENT_PATH + "/" + PATH_ID_PARAMETERS)
-	public ResponseEntity<FileResponse> getInfoFile(
-			@PathVariable(required = true) String uuid,
-			@PathVariable(required = true) String owner,
+	public ResponseEntity<?> getInfoFile(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner,
 			HttpServletRequest request) {
 		try {
+			checkParameters(uuid, owner);
+
 			RequestProperties rProp = new RequestProperties(request);
 			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed both roles
@@ -151,8 +194,10 @@ public class FS_Controller {
 			if (!verifyAuthorizedFileAccess(request, rProp, file)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
 			return new ResponseEntity<FileResponse>(new FileResponse(file), HttpStatus.OK);
+		} catch (ParameterException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		} catch (HttpClientErrorException e) {
-			if (e.getStatusCode()==HttpStatus.UNAUTHORIZED)
+			if (e.getStatusCode() == HttpStatus.UNAUTHORIZED)
 				return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -163,9 +208,11 @@ public class FS_Controller {
 	}
 
 	@GetMapping(value = PARENT_PATH + "/download/" + PATH_ID_PARAMETERS, produces="application/zip")
-	public ResponseEntity<InputStreamResource> download(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner,
+	public ResponseEntity<?> download(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner,
 			HttpServletRequest request, HttpServletResponse response) {
 		try {
+			checkParameters(uuid, owner);
+
 			RequestProperties rProp = new RequestProperties(request);
 			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed both roles
@@ -183,10 +230,12 @@ public class FS_Controller {
 			response.setHeader("Content-Disposition", "attachment;filename=" + file.getId().getUuid());
 			response.setContentLengthLong(fileRead.getFile().length());
 			return ResponseEntity.ok().body(new InputStreamResource(new FileInputStream(fileRead.getFile())));
+		} catch (ParameterException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		} catch (FSFileNotFoundException e) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		} catch (HttpClientErrorException e) {
-			if (e.getStatusCode()==HttpStatus.UNAUTHORIZED)
+			if (e.getStatusCode() == HttpStatus.UNAUTHORIZED)
 				return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -198,23 +247,19 @@ public class FS_Controller {
 
 	@PostMapping(value = PARENT_PATH, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@ResponseBody
-	public ResponseEntity<Void> upload(// Form params
+	public ResponseEntity<?> upload(// Form params
 			@RequestPart(name = "file", required = true) MultipartFile file,
 			@RequestParam(name = "uuid", required = true) String uuid,
 			@RequestParam(name = "sites", required = true) String[] sites,
 			HttpServletRequest request) {
 		String idDeveloper = null;
 		try {
+			checkParameters(uuid, null, sites);
+
 			RequestProperties rProp = new RequestProperties(request);
 			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed ROLE_DEVELOPER
 			if (!rProp.developerRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-
-			// Params validation
-			if (uuid.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
-			for (int i = 0; i < sites.length; i++)
-				if (sites[i].isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
 			// Save file to DB
 			idDeveloper = rProp.getUserId();
@@ -225,6 +270,8 @@ public class FS_Controller {
 			storageService.store(file, uuid, idDeveloper);
 
 			return new ResponseEntity<>(HttpStatus.ACCEPTED);
+		} catch (ParameterException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		} catch (FSFileAlreadyExistsException e) {
 			return new ResponseEntity<>(HttpStatus.CONFLICT);
 		} catch (Exception e) {
@@ -293,6 +340,8 @@ public class FS_Controller {
 	@DeleteMapping(value = PARENT_PATH + "/" + PATH_ID_PARAMETERS)
 	public ResponseEntity<?> deleteFile(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner, HttpServletRequest request) {
 		try {
+			checkParameters(uuid, owner);
+
 			RequestProperties rProp = new RequestProperties(request);
 			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed ROLE_DEVELOPER
@@ -308,6 +357,8 @@ public class FS_Controller {
 				return new ResponseEntity<>(HttpStatus.OK);
 			else
 				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (ParameterException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -317,12 +368,14 @@ public class FS_Controller {
 	// -------------------- Deployment requests methods functions --------------------
 
 	@GetMapping(value = PATH_DEPLOYMET_REQUEST + "/" + PATH_ID_PARAMETERS)
-	public ResponseEntity<List<DeploymentRequestResponse>> getDeploymentRequests(
+	public ResponseEntity<?> getDeploymentRequests(
 			@PathVariable(required = true) String uuid,
 			@PathVariable(required = true) String owner,
 			@RequestParam(required = false) String site,
 			HttpServletRequest request) {
 		try {
+			checkParameters(uuid, owner, site);
+
 			RequestProperties rProp = new RequestProperties(request);
 			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed ROLE_DEVELOPER
@@ -345,6 +398,8 @@ public class FS_Controller {
 				result.add(new DeploymentRequestResponse(d.getSite(), d.getStatus()));
 
 			return new ResponseEntity<List<DeploymentRequestResponse>>(result, HttpStatus.OK);
+		} catch (ParameterException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -358,15 +413,12 @@ public class FS_Controller {
 			@RequestBody(required = true) String[] sites,
 			HttpServletRequest request) {
 		try {
+			checkParameters(uuid, owner, sites);
+
 			RequestProperties rProp = new RequestProperties(request);
 			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed ROLE_DEVELOPER
 			if (!rProp.developerRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-
-			// Params validation
-			if (sites.length == 0) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-			for (int i = 0; i < sites.length; i++)
-				if (sites[i].isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
 			// Get file
 			File file = fileService.findFilesById(uuid, owner);
@@ -374,8 +426,10 @@ public class FS_Controller {
 
 			fileService.insertDeploymentRequests(file, sites);
 			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (ParameterException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		} catch (DBException e) {// For example: one site does not exist
-			return new ResponseEntity<>("" + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -389,17 +443,18 @@ public class FS_Controller {
 			@RequestParam(required = true) String site,
 			HttpServletRequest request) {
 		try {
+			checkParameters(uuid, owner, site);
+
 			RequestProperties rProp = new RequestProperties(request);
 			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed ROLE_MANAGER
 			if (!rProp.managerRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
-			// Params validation
-			if (site.isEmpty()) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-
 			// Deploy
 			fileService.deployDeploymentRequest(uuid, owner, site);
 			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (ParameterException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		} catch (DBFileNotFoundException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 		} catch (DBException e) {
@@ -416,13 +471,12 @@ public class FS_Controller {
 			@RequestParam(required = true) String site,
 			HttpServletRequest request) {
 		try {
+			checkParameters(null, owner, site);
+
 			RequestProperties rProp = new RequestProperties(request);
 			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed ROLE_DEVELOPER
 			if (!rProp.developerRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-
-			// Params validation
-			if (site.equals("")) return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
 			// Find file
 			File file = fileService.findFilesById(uuid, owner);
@@ -439,6 +493,8 @@ public class FS_Controller {
 			} else {
 				return new ResponseEntity<>(HttpStatus.OK);
 			}
+		} catch (ParameterException e) {
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		} catch (DBFileNotFoundException | FSFileNotFoundException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
