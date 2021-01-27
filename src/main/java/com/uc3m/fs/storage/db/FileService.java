@@ -125,12 +125,16 @@ public class FileService {
 	/**
 	 * Add deployment request. If one exists -> no adding and no error
 	 */
+	@Transactional
 	public void insertDeploymentRequests(File file, String[] sites) throws DBException {
 		try {
 			List<DeploymentRequest> dr = file.getDeploymentRequests();
-			for (int i = 0; i < sites.length; i++)
-				dr.add(new DeploymentRequest(new DeploymentRequestPK(file.getUuid(), file.getOwner(), sites[i]), file, new Site(sites[i]), STATUS_DEPLOY));
-
+			DeploymentRequest d;
+			for (int i = 0; i < sites.length; i++) {
+				d = new DeploymentRequest(new DeploymentRequestPK(file.getUuid(), file.getOwner(), sites[i]), file, new Site(sites[i]), STATUS_DEPLOY);
+				dr.add(d);
+				deploymentRequestRepository.save(d);
+			}
 			fileRepository.save(file);
 		} catch (Exception e) {
 			throw new DBException(e.getMessage(), e);
