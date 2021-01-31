@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.uc3m.fs.exceptions.DBException;
@@ -64,11 +63,6 @@ public class FS_Controller {
 
 	@ExceptionHandler(ConstraintViolationException.class)
 	public ResponseEntity<?> handleConstraintViolationException(ConstraintViolationException e) {
-		return ResponseEntity.badRequest().build();
-	}
-
-	@ExceptionHandler(MaxUploadSizeExceededException.class)
-	public ResponseEntity<?> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
 		return ResponseEntity.badRequest().build();
 	}
 
