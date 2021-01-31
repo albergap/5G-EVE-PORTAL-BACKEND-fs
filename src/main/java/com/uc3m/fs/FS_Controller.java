@@ -243,8 +243,6 @@ public class FS_Controller {
 		try {
 			checkParameters(uuid, null, sites);
 			
-			System.out.println("-------tam: "+file.getSize());// TODO
-
 			RequestProperties rProp = new RequestProperties(request);
 			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed ROLE_DEVELOPER
