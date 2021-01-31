@@ -6,7 +6,6 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.ConstraintViolationException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -16,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -59,11 +57,6 @@ public class FS_Controller {
 	@Autowired
 	public void setProductService(FileService fileService) {
 		this.fileService = fileService;
-	}
-
-	@ExceptionHandler(ConstraintViolationException.class)
-	public ResponseEntity<?> handleConstraintViolationException(ConstraintViolationException e) {
-		return ResponseEntity.badRequest().build();
 	}
 
 	// -------------------- Auxiliar functions --------------------
@@ -249,6 +242,8 @@ public class FS_Controller {
 		String idDeveloper = null;
 		try {
 			checkParameters(uuid, null, sites);
+			
+			System.out.println("-------tam: "+file.getSize());// TODO
 
 			RequestProperties rProp = new RequestProperties(request);
 			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);

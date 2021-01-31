@@ -59,6 +59,8 @@ paths:
           description: the user authenticated does not have access to file
         '409':
           description: that file already exists
+        '413':
+          description: Payload Too Large when the file exceeds the maximum
   /fs/{uuid}/{owner}:
     get:
       tags:
