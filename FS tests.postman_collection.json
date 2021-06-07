@@ -11,7 +11,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "6a4b9ed3-8d0c-4d5d-a01c-ef889e645e9a",
 						"exec": [
 							"pm.test(\"Must be 401 Unauthorized\", function(){\r",
 							"    pm.response.to.have.status(401);\r",
@@ -43,7 +42,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "81ec9860-bb63-41e2-bc95-6c59852609dc",
 						"exec": [
 							"pm.test(\"Must be 401 Unauthorized\", function(){",
 							"    pm.response.to.have.status(401);",
@@ -111,7 +109,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "fa7c92ae-debe-42f8-8bf2-7066df4c1ad3",
 						"exec": [
 							"pm.test(\"Must be 401 Unauthorized\", function(){",
 							"    pm.response.to.have.status(401);",
@@ -148,7 +145,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "3cab741e-a66d-4707-8008-05293e90a8b7",
 						"exec": [
 							"pm.test(\"Must be 401 Unauthorized\", function(){",
 							"    pm.response.to.have.status(401);",
@@ -185,7 +181,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "15e66045-7b51-466d-9def-184f1ad7369e",
 						"exec": [
 							"pm.test(\"Must be 401 Unauthorized\", function(){",
 							"    pm.response.to.have.status(401);",
@@ -223,7 +218,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "6d728864-7c39-4667-a525-7607cd58500a",
 						"exec": [
 							"pm.test(\"Must be 401 Unauthorized\", function(){\r",
 							"    pm.response.to.have.status(401);\r",
@@ -258,7 +252,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "692648c2-f5b8-41b9-937e-7987cc6125e9",
 						"exec": [
 							"pm.test(\"Must be 401 Unauthorized\", function(){\r",
 							"    pm.response.to.have.status(401);\r",
@@ -302,7 +295,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "fe88c5b1-3313-4648-ac54-d1613fbc1b9f",
 						"exec": [
 							"pm.test(\"Must be 401 Unauthorized\", function(){",
 							"    pm.response.to.have.status(401);",
@@ -345,7 +337,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "9f04e648-0688-4932-81aa-da7d7a900833",
 						"exec": [
 							"pm.test(\"Must be 401 Unauthorized\", function(){",
 							"    pm.response.to.have.status(401);",
@@ -399,7 +390,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "de3bb494-195a-4365-a718-09c536a504d4",
 						"exec": [
 							"pm.environment.set('access_token_developer', \"Bearer \" + pm.response.json().access_token)"
 						],
@@ -441,7 +431,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "2517bf35-2b98-4eda-99a0-54b7b03e507e",
 						"exec": [
 							"pm.test(\"Must be 200 OK\", function(){\r",
 							"    pm.response.to.have.status(200);\r",
@@ -479,7 +468,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "81ec9860-bb63-41e2-bc95-6c59852609dc",
 						"exec": [
 							"pm.test(\"Must be 200 OK\", function(){",
 							"    pm.response.to.have.status(200);",
@@ -528,7 +516,7 @@
 						},
 						{
 							"key": "sites",
-							"value": "SPAIN_5TONIC,ITALY_TURIN",
+							"value": "FRANCE_NICE,FRANCE_PARIS,FRANCE_RENNES",
 							"type": "text"
 						}
 					]
@@ -552,7 +540,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "d7ef7a8b-c9d3-4065-99a2-d29ef69f687d",
 						"exec": [
 							"pm.test(\"Must be 200 OK\", function(){",
 							"    pm.response.to.have.status(200);",
@@ -575,14 +562,14 @@
 					}
 				],
 				"url": {
-					"raw": "http://{{ip-port_fs}}/fs/uuidPostman3.zip/user1@mail.com",
+					"raw": "http://{{ip-port_fs}}/fs/uuidPostman1.zip/user1@mail.com",
 					"protocol": "http",
 					"host": [
 						"{{ip-port_fs}}"
 					],
 					"path": [
 						"fs",
-						"uuidPostman3.zip",
+						"uuidPostman1.zip",
 						"user1@mail.com"
 					]
 				}
@@ -595,7 +582,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "1122b3a4-512c-4ab5-b74e-345e46a3097e",
 						"exec": [
 							"pm.test(\"Must be 200 OK\", function(){",
 							"    pm.response.to.have.status(200);",
@@ -638,7 +624,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "15e66045-7b51-466d-9def-184f1ad7369e",
 						"exec": [
 							"pm.test(\"Must be 200 OK\", function(){",
 							"    pm.response.to.have.status(200);",
@@ -682,7 +667,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "5498e5e3-94c1-4b09-a718-273dce947c07",
 						"exec": [
 							"pm.test(\"Must be 200 OK\", function(){\r",
 							"    pm.response.to.have.status(200);\r",
@@ -702,7 +686,7 @@
 					}
 				],
 				"url": {
-					"raw": "http://{{ip-port_fs}}/fs/deployment_request/uuidPostman1.zip/user1@mail.com",
+					"raw": "http://{{ip-port_fs}}/fs/deployment_request/big_file/user1@mail.com",
 					"protocol": "http",
 					"host": [
 						"{{ip-port_fs}}"
@@ -710,7 +694,7 @@
 					"path": [
 						"fs",
 						"deployment_request",
-						"uuidPostman1.zip",
+						"big_file",
 						"user1@mail.com"
 					]
 				}
@@ -723,7 +707,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "c8c77eb3-5e2a-4ed2-b09d-003b213059a8",
 						"exec": [
 							"pm.test(\"Must be 200 OK\", function(){\r",
 							"    pm.response.to.have.status(200);\r",
@@ -744,7 +727,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "[]",
+					"raw": "[\"FRANCE_NICE\"]",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -773,7 +756,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "fdfd3413-f9da-4ad2-8890-33dd19bdb2ab",
 						"exec": [
 							"pm.test(\"Must be 200 OK\", function(){",
 							"    pm.response.to.have.status(200);",
@@ -796,20 +778,21 @@
 					}
 				],
 				"url": {
-					"raw": "http://{{ip-port_fs}}/fs/uuidPostman1.zip/user1@mail.com?site=SPAIN_5TONIC",
+					"raw": "http://{{ip-port_fs}}/fs/deployment_request/uuidPostman1.zip/user1@mail.com?site=FRANCE_RENNES",
 					"protocol": "http",
 					"host": [
 						"{{ip-port_fs}}"
 					],
 					"path": [
 						"fs",
+						"deployment_request",
 						"uuidPostman1.zip",
 						"user1@mail.com"
 					],
 					"query": [
 						{
 							"key": "site",
-							"value": "SPAIN_5TONIC"
+							"value": "FRANCE_RENNES"
 						}
 					]
 				}
@@ -822,7 +805,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "722a4847-c1f2-4b35-867a-6dc956e8a447",
 						"exec": [
 							"pm.test(\"Must be 403 Forbidden\", function(){",
 							"    pm.response.to.have.status(403);",
@@ -854,7 +836,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://{{ip-port_fs}}/fs/deployment_request/deploy/uuidPostman1.zip/user1@mail.com?site=aa",
+					"raw": "http://{{ip-port_fs}}/fs/deployment_request/deploy/big_file/user1@mail.com?site=SPAIN_5TONIC",
 					"protocol": "http",
 					"host": [
 						"{{ip-port_fs}}"
@@ -863,13 +845,13 @@
 						"fs",
 						"deployment_request",
 						"deploy",
-						"uuidPostman1.zip",
+						"big_file",
 						"user1@mail.com"
 					],
 					"query": [
 						{
 							"key": "site",
-							"value": "aa"
+							"value": "SPAIN_5TONIC"
 						}
 					]
 				}
@@ -882,7 +864,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "9794934f-22cb-4ab0-b2f8-c818f38e694a",
 						"exec": [
 							"pm.environment.set('access_token_manager', \"Bearer \" + pm.response.json().access_token)"
 						],
@@ -924,7 +905,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "fa19d8d5-bce4-40cf-a532-c688c50ae420",
 						"exec": [
 							"pm.test(\"Must be 200 OK\", function(){\r",
 							"    pm.response.to.have.status(200);\r",
@@ -962,7 +942,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "371076b6-7199-4cb0-bb88-45c80c0f1e89",
 						"exec": [
 							"pm.test(\"Must be 403 Forbidden\", function(){",
 							"    pm.response.to.have.status(403);",
@@ -1036,7 +1015,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "c6cedff5-02da-42d7-ac64-52477fa621d3",
 						"exec": [
 							"pm.test(\"Must be 200 OK\", function(){",
 							"    pm.response.to.have.status(200);",
@@ -1079,7 +1057,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "7e96735a-7820-4ba5-a1e4-d478cd80de9c",
 						"exec": [
 							"pm.test(\"Must be 403 Forbidden\", function(){",
 							"    pm.response.to.have.status(403);",
@@ -1122,7 +1099,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "5c0bdecb-0e49-45f8-a14d-bcb30ce23ba1",
 						"exec": [
 							"pm.test(\"Must be 200 OK\", function(){",
 							"    pm.response.to.have.status(200);",
@@ -1166,7 +1142,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "0e580ad5-1e9c-4761-a09c-c50c5cd15b0e",
 						"exec": [
 							"pm.test(\"Must be 200 OK\", function(){\r",
 							"    pm.response.to.have.status(200);\r",
@@ -1186,7 +1161,7 @@
 					}
 				],
 				"url": {
-					"raw": "http://{{ip-port_fs}}/fs/deployment_request/uuidPostman1.zip/user1@mail.com",
+					"raw": "http://{{ip-port_fs}}/fs/deployment_request/big_file/admin@mail.com",
 					"protocol": "http",
 					"host": [
 						"{{ip-port_fs}}"
@@ -1194,8 +1169,8 @@
 					"path": [
 						"fs",
 						"deployment_request",
-						"uuidPostman1.zip",
-						"user1@mail.com"
+						"big_file",
+						"admin@mail.com"
 					]
 				}
 			},
@@ -1207,7 +1182,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "bd4b1e31-7bb4-4516-81c2-8b2dddd26f4c",
 						"exec": [
 							"pm.test(\"Must be 403 Forbidden\", function(){\r",
 							"    pm.response.to.have.status(403);\r",
@@ -1257,7 +1231,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "c793f06a-b7d0-4bff-95ca-dc37c5d4b115",
 						"exec": [
 							"pm.test(\"Must be 403 Forbidden\", function(){",
 							"    pm.response.to.have.status(403);",
@@ -1280,13 +1253,14 @@
 					}
 				],
 				"url": {
-					"raw": "http://{{ip-port_fs}}/fs/uuidPostman1.zip/user1@mail.com?site=SPAIN_5TONIC",
+					"raw": "http://{{ip-port_fs}}/fs/deployment_request/uuidPostman1.zip/user1@mail.com?site=SPAIN_5TONIC",
 					"protocol": "http",
 					"host": [
 						"{{ip-port_fs}}"
 					],
 					"path": [
 						"fs",
+						"deployment_request",
 						"uuidPostman1.zip",
 						"user1@mail.com"
 					],
@@ -1306,7 +1280,6 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "a10b69e0-0feb-46fc-9e46-1431e6a5a3d1",
 						"exec": [
 							"pm.test(\"Must be 200 OK\", function(){",
 							"    pm.response.to.have.status(200);",
@@ -1338,7 +1311,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://{{ip-port_fs}}/fs/deployment_request/deploy/uuidPostman1.zip/user1@mail.com?site=aa",
+					"raw": "http://{{ip-port_fs}}/fs/deployment_request/deploy/big_file/user1@mail.com?site=SPAIN_5TONIC",
 					"protocol": "http",
 					"host": [
 						"{{ip-port_fs}}"
@@ -1347,19 +1320,54 @@
 						"fs",
 						"deployment_request",
 						"deploy",
-						"uuidPostman1.zip",
+						"big_file",
 						"user1@mail.com"
 					],
 					"query": [
 						{
 							"key": "site",
-							"value": "aa"
+							"value": "SPAIN_5TONIC"
 						}
 					]
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "get info file unauth Copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Must be 401 Unauthorized\", function(){",
+							"    pm.response.to.have.status(401);",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://{{ip-port_fs}}/fs/uuidPostman3.zip/user1@mail.com",
+					"protocol": "http",
+					"host": [
+						"{{ip-port_fs}}"
+					],
+					"path": [
+						"fs",
+						"uuidPostman3.zip",
+						"user1@mail.com"
+					]
+				}
+			},
+			"response": []
 		}
-	],
-	"protocolProfileBehavior": {}
+	]
 }
