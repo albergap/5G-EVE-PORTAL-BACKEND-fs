@@ -2,6 +2,7 @@ package com.uc3m.fs;
 
 import java.io.FileInputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -142,8 +143,11 @@ public class FS_Controller {
 				if (fr.uuid.equals(deploymentRequest.get(i).getId().getUuid()) &&
 						fr.owner.equals(deploymentRequest.get(i).getId().getOwner())) {
 					fr.deploymentRequests.add(
-							new DeploymentRequestResponse(deploymentRequest.get(i).getSite(), deploymentRequest.get(i).getStatus())
-							);
+							new DeploymentRequestResponse(
+									deploymentRequest.get(i).getSite(),
+									deploymentRequest.get(i).getStatus(),
+									deploymentRequest.get(i).getDateRequest()
+							));
 					added = true;
 				}
 			}
@@ -151,13 +155,16 @@ public class FS_Controller {
 			if (!added) {
 				ArrayList<DeploymentRequestResponse> deploymentRequestResponse = new ArrayList<DeploymentRequestResponse>();
 				deploymentRequestResponse.add(
-						new DeploymentRequestResponse(deploymentRequest.get(i).getSite(), deploymentRequest.get(i).getStatus())
-						);
+						new DeploymentRequestResponse(
+								deploymentRequest.get(i).getSite(),
+								deploymentRequest.get(i).getStatus(),
+								deploymentRequest.get(i).getDateRequest()
+						));
 				result.add(new FileResponse(
 						deploymentRequest.get(i).getId().getUuid(),
 						deploymentRequest.get(i).getId().getOwner(),
 						deploymentRequestResponse)
-						);
+				);
 			}
 		}
 		return result;
@@ -242,7 +249,7 @@ public class FS_Controller {
 		String idDeveloper = null;
 		try {
 			checkParameters(uuid, null, sites);
-			
+
 			RequestProperties rProp = new RequestProperties(request);
 			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed ROLE_DEVELOPER
@@ -251,7 +258,7 @@ public class FS_Controller {
 			// Save file to DB
 			idDeveloper = rProp.getUserId();
 			File f = new File(uuid, idDeveloper);
-			fileService.saveFile(f, sites);
+			fileService.saveFile(f, sites, new Date()); //Timestamp
 
 			// Save file to persistence
 			storageService.store(file, uuid, idDeveloper);
@@ -300,8 +307,10 @@ public class FS_Controller {
 					// Deployment requests
 					for (int j = 0; j < files.get(i).getDeploymentRequests().size(); j++)
 						fr.deploymentRequests.add(new DeploymentRequestResponse(
-								files.get(i).getDeploymentRequests().get(j).getSite(), files.get(i).getDeploymentRequests().get(j).getStatus()
-								));
+								files.get(i).getDeploymentRequests().get(j).getSite(),
+								files.get(i).getDeploymentRequests().get(j).getStatus(),
+								files.get(i).getDeploymentRequests().get(j).getDateRequest()
+						));
 					result.add(fr);
 				}
 			}
@@ -382,7 +391,7 @@ public class FS_Controller {
 			// Result
 			List<DeploymentRequestResponse> result = new ArrayList<DeploymentRequestResponse>(dr.size());
 			for (DeploymentRequest d : dr)
-				result.add(new DeploymentRequestResponse(d.getSite(), d.getStatus()));
+				result.add(new DeploymentRequestResponse(d.getSite(), d.getStatus(), d.getDateRequest()));
 
 			return new ResponseEntity<List<DeploymentRequestResponse>>(result, HttpStatus.OK);
 		} catch (ParameterException e) {
@@ -411,7 +420,7 @@ public class FS_Controller {
 			File file = fileService.findFilesById(uuid, owner);
 			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
-			fileService.insertDeploymentRequests(file, sites);
+			fileService.insertDeploymentRequests(file, sites, new Date());
 			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (ParameterException e) {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);

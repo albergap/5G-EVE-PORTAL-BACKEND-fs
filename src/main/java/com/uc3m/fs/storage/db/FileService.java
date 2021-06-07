@@ -1,6 +1,7 @@
 package com.uc3m.fs.storage.db;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.transaction.Transactional;
@@ -44,7 +45,7 @@ public class FileService {
 	 * Insert file and deployment requests
 	 */
 	@Transactional
-	public File saveFile(File file, String[] sites) throws DBException {
+	public File saveFile(File file, String[] sites, Date date_request) throws DBException {
 		try {
 			fileRepository.save(file);
 			ArrayList<DeploymentRequest> requests = new ArrayList<>(sites.length);
@@ -52,7 +53,7 @@ public class FileService {
 				for (int i = 0; i < sites.length; i++) {
 					requests.add(new DeploymentRequest(
 							new DeploymentRequestPK(file.getUuid(), file.getOwner(), sites[i]),
-							file, null, STATUS_DEPLOY));
+							file, null, STATUS_DEPLOY, date_request));
 				}
 			}
 			deploymentRequestRepository.saveAll(requests);
@@ -126,12 +127,12 @@ public class FileService {
 	 * Add deployment request. If one exists -> no adding and no error
 	 */
 	@Transactional
-	public void insertDeploymentRequests(File file, String[] sites) throws DBException {
+	public void insertDeploymentRequests(File file, String[] sites, Date date_request) throws DBException {
 		try {
 			List<DeploymentRequest> dr = file.getDeploymentRequests();
 			DeploymentRequest d;
 			for (int i = 0; i < sites.length; i++) {
-				d = new DeploymentRequest(new DeploymentRequestPK(file.getUuid(), file.getOwner(), sites[i]), file, new Site(sites[i]), STATUS_DEPLOY);
+				d = new DeploymentRequest(new DeploymentRequestPK(file.getUuid(), file.getOwner(), sites[i]), file, new Site(sites[i]), STATUS_DEPLOY, date_request);
 				dr.add(d);
 				deploymentRequestRepository.save(d);
 			}

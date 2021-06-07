@@ -25,7 +25,8 @@ DROP TABLE IF EXISTS public.deployment_requests;
 CREATE TABLE public.deployment_requests (
 	uuid VARCHAR NOT NULL,
 	owner VARCHAR NOT NULL,
-	site VARCHAR NOT NULL,
+	site VARCHAR NOT NULL,,
+	date_request timestamp(3) NOT NULL,
 	status VARCHAR NOT NULL,
 	PRIMARY KEY (uuid,owner,site),
 	CONSTRAINT fk_files FOREIGN KEY(uuid,owner) REFERENCES files(uuid,owner) ON DELETE CASCADE ON UPDATE CASCADE,

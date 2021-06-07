@@ -316,6 +316,9 @@ components:
           type: string
         status:
           type: string
+        date_request:
+          type: string
+          format: timestamp
   securitySchemes:
     bearerAuth:
       description: Both roles

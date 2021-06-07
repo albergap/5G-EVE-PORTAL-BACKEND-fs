@@ -1,6 +1,7 @@
 package com.uc3m.fs.storage.db.entities;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
@@ -34,13 +35,16 @@ public class DeploymentRequest implements Serializable {
 	@JoinColumn(name="site", insertable = false, updatable = false)
 	private Site siteBean;
 
+	private Date date_request;
+
 	public DeploymentRequest() {
 	}
-	public DeploymentRequest(DeploymentRequestPK id, File file, Site site, String status) {
+	public DeploymentRequest(DeploymentRequestPK id, File file, Site site, String status, Date date_request) {
 		this.id = id;
 		this.file = file;
 		this.siteBean = site;
 		this.status = status;
+		this.date_request = date_request;
 	}
 
 	public DeploymentRequestPK getId() {
@@ -57,6 +61,14 @@ public class DeploymentRequest implements Serializable {
 
 	public void setStatus(String status) {
 		this.status = status;
+	}
+
+	public Date getDateRequest() {
+		return this.date_request;
+	}
+
+	public void setDateRequest(Date date_request) {
+		this.date_request = date_request;
 	}
 
 	public File getFile() {
@@ -81,7 +93,7 @@ public class DeploymentRequest implements Serializable {
 
 	@Override
 	public String toString() {
-		return "DeploymentRequest [id=" + id + ", status=" + status + ", file=" + file + ", siteBean=" + siteBean + "]";
+		return "DeploymentRequest [id=" + id + ", status=" + status + ", file=" + file + ", siteBean=" + siteBean + ", date_request=" + date_request + "]";
 	}
 
 }

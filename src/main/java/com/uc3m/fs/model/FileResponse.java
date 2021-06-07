@@ -28,7 +28,7 @@ public class FileResponse {
 		List<DeploymentRequest> dr = file.getDeploymentRequests();
 		deploymentRequests = new ArrayList<DeploymentRequestResponse>(dr.size());
 		for (DeploymentRequest d : dr)
-			deploymentRequests.add(new DeploymentRequestResponse(d.getSite(), d.getStatus()));
+			deploymentRequests.add(new DeploymentRequestResponse(d.getSite(), d.getStatus(), d.getDateRequest()));
 	}
 
 	@Override
