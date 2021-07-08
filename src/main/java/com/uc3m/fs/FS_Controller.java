@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sun.xml.fastinfoset.util.StringArray;
 import com.uc3m.fs.exceptions.DBException;
 import com.uc3m.fs.exceptions.DBFileNotFoundException;
 import com.uc3m.fs.exceptions.FSFileAlreadyExistsException;
@@ -48,6 +49,7 @@ public class FS_Controller {
 	private static final String PARENT_PATH = "fs", PATH_UUID = "{uuid}", PATH_OWNER = "{owner}",
 			PATH_UUID_OWNER = PATH_UUID + "/" + PATH_OWNER, PATH_DEPLOYMET_REQUEST = PARENT_PATH + "/deployment_request";
 
+	// Inicializate
 	@Autowired
 	private FileService fileService;
 	private final StorageService storageService;
@@ -62,11 +64,20 @@ public class FS_Controller {
 	}
 
 	// -------------------- Auxiliar functions --------------------
-
+	/**
+	 * Returns true if the user own the file
+	 * @param request User
+	 * @param file
+	 */
 	private static boolean isFileOwnership(RequestProperties request, File file) {
 		return request.developerRole && request.getUserId().equals(file.getId().getOwner());
 	}
-	private static boolean isFileManaged(String bearerToken, RequestProperties request, File file) throws Exception {
+	/**
+	 * Returns true if the file has a deployment request with a site which is managed by the user
+	 * @param request User
+	 * @param file
+	 */
+	private static boolean isFileManaged(RequestProperties request, File file) throws Exception {
 		if (request.managerRole) {
 			// Get all sites of file, auxiliar variable
 			String[] sitesFile = new String[file.getDeploymentRequests().size()];
@@ -74,7 +85,7 @@ public class FS_Controller {
 				sitesFile[i] = file.getDeploymentRequests().get(i).getSite();
 
 			// Check if is managed
-			String[] sitesUser = RBACRestService.getSitesOfUser(bearerToken);
+			String[] sitesUser = RBACRestService.getSitesOfUser(request.getBearerToken());
 			for (int i = 0; i < sitesFile.length; i++) {
 				// If a site is managed -> access
 				for (int j = 0; j < sitesUser.length; j++)
@@ -83,22 +94,42 @@ public class FS_Controller {
 		}
 		return false;
 	}
+	/**
+	 * Returns true if the file is owned or managed by the user
+	 * @param requestProperties User
+	 * @param file
+	 */
 	private static boolean verifyAuthorizedFileAccess(RequestProperties requestProperties, File file) throws Exception {
-		return isFileOwnership(requestProperties, file) || isFileManaged(requestProperties.getBearerToken(), requestProperties, file);
+		return isFileOwnership(requestProperties, file) || isFileManaged(requestProperties, file);
 	}
 
+	/**
+	 * Throws a {@link ParameterException} if the uuid does not meet the requirements
+	 * @param uuid
+	 * @throws ParameterException
+	 */
 	private static void checkUuidParameter(String uuid) throws ParameterException {
 		if (uuid != null) {
 			if (uuid.length() > Config.UUID_MAX_LENGTH) throw new ParameterException("Maximun uuid length is " + Config.UUID_MAX_LENGTH);
 			if (uuid.isEmpty()) throw new ParameterException("Uuid is an empty string");
 		}
 	}
+	/**
+	 * Throws a {@link ParameterException} if the owner does not meet the requirements
+	 * @param owner
+	 * @throws ParameterException
+	 */
 	private static void checkOwnerParameter(String owner) throws ParameterException {
 		if (owner != null) {
 			if (owner.length() > Config.OWNER_MAX_LENGTH) throw new ParameterException("Maximun owner length is " + Config.UUID_MAX_LENGTH);
 			if (owner.isEmpty()) throw new ParameterException("Owner is an empty string");
 		}
 	}
+	/**
+	 * Throws a {@link ParameterException} if the {@link StringArray} of sites (or one of them) does not meet the requirements
+	 * @param sites
+	 * @throws ParameterException
+	 */
 	private static void checkSitesParameter(String[] sites) throws ParameterException {
 		if (sites != null) {
 			if (sites.length == 0) throw new ParameterException("Sites must contain one site");
@@ -110,6 +141,11 @@ public class FS_Controller {
 			}
 		}
 	}
+	/**
+	 * Throws a {@link ParameterException} if a site do not meet the requirements
+	 * @param sites
+	 * @throws ParameterException
+	 */
 	private static void checkSiteParameter(String site) throws ParameterException {
 		if (site != null) {
 			if (site.length() > Config.SITE_MAX_LENGTH) throw new ParameterException("Maximun site length is " + Config.SITE_MAX_LENGTH);
@@ -132,7 +168,7 @@ public class FS_Controller {
 	// -------------------- File methods functions --------------------
 
 	/**
-	 * Create FileResponses for every file
+	 * Create {@link FileResponse} {@link List} for every {@link File}
 	 * EXAMPLE: 2 DeploymentRequest (different sites) in the same file will result 1 FileResponse with 2 sites in the list
 	 */
 	private static List<FileResponse> getFilesBySites(List<DeploymentRequest> deploymentRequest) {

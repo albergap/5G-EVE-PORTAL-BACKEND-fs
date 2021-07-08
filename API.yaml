@@ -173,7 +173,7 @@ paths:
     get:
       tags:
         - Files
-      summary: Download a file  if the user who request it is developer and owner
+      summary: Download a file if the user who request it is developer and owner
       parameters:
         - in: path
           name: uuid
