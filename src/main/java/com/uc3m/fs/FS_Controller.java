@@ -45,7 +45,8 @@ import com.uc3m.fs.storage.fs.StorageService;
 @RestController
 public class FS_Controller {
 
-	private static final String PARENT_PATH = "fs", PATH_ID_PARAMETERS = "{uuid}/{owner}", PATH_DEPLOYMET_REQUEST = PARENT_PATH + "/deployment_request";
+	private static final String PARENT_PATH = "fs", PATH_UUID = "{uuid}", PATH_OWNER = "{owner}",
+			PATH_UUID_OWNER = PATH_UUID + "/" + PATH_OWNER, PATH_DEPLOYMET_REQUEST = PARENT_PATH + "/deployment_request";
 
 	@Autowired
 	private FileService fileService;
@@ -82,8 +83,8 @@ public class FS_Controller {
 		}
 		return false;
 	}
-	private static boolean verifyAuthorizedFileAccess(HttpServletRequest request, RequestProperties requestProperties, File file) throws Exception {
-		return isFileOwnership(requestProperties, file) || isFileManaged(request.getHeader(HttpHeaders.AUTHORIZATION), requestProperties, file);
+	private static boolean verifyAuthorizedFileAccess(RequestProperties requestProperties, File file) throws Exception {
+		return isFileOwnership(requestProperties, file) || isFileManaged(requestProperties.getBearerToken(), requestProperties, file);
 	}
 
 	private static void checkUuidParameter(String uuid) throws ParameterException {
@@ -147,7 +148,7 @@ public class FS_Controller {
 									deploymentRequest.get(i).getSite(),
 									deploymentRequest.get(i).getStatus(),
 									deploymentRequest.get(i).getDateRequest()
-							));
+									));
 					added = true;
 				}
 			}
@@ -159,24 +160,21 @@ public class FS_Controller {
 								deploymentRequest.get(i).getSite(),
 								deploymentRequest.get(i).getStatus(),
 								deploymentRequest.get(i).getDateRequest()
-						));
+								));
 				result.add(new FileResponse(
 						deploymentRequest.get(i).getId().getUuid(),
 						deploymentRequest.get(i).getId().getOwner(),
 						deploymentRequestResponse)
-				);
+						);
 			}
 		}
 		return result;
 	}
 
-	@GetMapping(value = PARENT_PATH + "/" + PATH_ID_PARAMETERS)
-	public ResponseEntity<?> getInfoFile(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner,
-			HttpServletRequest request) {
+	private ResponseEntity<?> getInfoFile(String uuid, String owner, RequestProperties rProp) {
 		try {
 			checkParameters(uuid, owner);
 
-			RequestProperties rProp = new RequestProperties(request);
 			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed both roles
 
@@ -185,7 +183,7 @@ public class FS_Controller {
 			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
 			// Verify access
-			if (!verifyAuthorizedFileAccess(request, rProp, file)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+			if (!verifyAuthorizedFileAccess(rProp, file)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
 			return new ResponseEntity<FileResponse>(new FileResponse(file), HttpStatus.OK);
 		} catch (ParameterException e) {
@@ -200,14 +198,24 @@ public class FS_Controller {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+	@GetMapping(value = PARENT_PATH + "/" + PATH_UUID_OWNER)
+	public ResponseEntity<?> getInfoFile(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner,
+			HttpServletRequest request) {
+		return getInfoFile(uuid, owner, new RequestProperties(request));
+	}
+	@GetMapping(value = PARENT_PATH + "/" + PATH_UUID)
+	public ResponseEntity<?> getInfoFile(@PathVariable(required = true) String uuid, HttpServletRequest request) {
+		RequestProperties rProp = new RequestProperties(request);
+		String owner = rProp.getUserId();
+		if (owner  == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
-	@GetMapping(value = PARENT_PATH + "/download/" + PATH_ID_PARAMETERS, produces="application/zip")
-	public ResponseEntity<?> download(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner,
-			HttpServletRequest request, HttpServletResponse response) {
+		return getInfoFile(uuid, owner, rProp);
+	}
+
+	private ResponseEntity<?> download(String uuid, String owner, RequestProperties rProp, HttpServletResponse response) {
 		try {
 			checkParameters(uuid, owner);
 
-			RequestProperties rProp = new RequestProperties(request);
 			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed both roles
 
@@ -216,7 +224,7 @@ public class FS_Controller {
 			if (file == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
 			// Verify access
-			if (!verifyAuthorizedFileAccess(request, rProp, file)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+			if (!verifyAuthorizedFileAccess(rProp, file)) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
 
 			// Read file
 			Resource fileRead = storageService.readFile(uuid, file.getId().getOwner());
@@ -237,6 +245,19 @@ public class FS_Controller {
 			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+	@GetMapping(value = PARENT_PATH + "/download/" + PATH_UUID_OWNER, produces="application/zip")
+	public ResponseEntity<?> download(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner,
+			HttpServletRequest request, HttpServletResponse response) {
+		return download(uuid, owner, new RequestProperties(request), response);
+	}
+	@GetMapping(value = PARENT_PATH + "/download/" + PATH_UUID, produces="application/zip")
+	public ResponseEntity<?> download(@PathVariable(required = true) String uuid, HttpServletRequest request, HttpServletResponse response) {
+		RequestProperties rProp = new RequestProperties(request);
+		String owner = rProp.getUserId();
+		if (owner  == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
+		return download(uuid, owner, rProp, response);
 	}
 
 	@PostMapping(value = PARENT_PATH, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -310,7 +331,7 @@ public class FS_Controller {
 								files.get(i).getDeploymentRequests().get(j).getSite(),
 								files.get(i).getDeploymentRequests().get(j).getStatus(),
 								files.get(i).getDeploymentRequests().get(j).getDateRequest()
-						));
+								));
 					result.add(fr);
 				}
 			}
@@ -333,12 +354,15 @@ public class FS_Controller {
 		}
 	}
 
-	@DeleteMapping(value = PARENT_PATH + "/" + PATH_ID_PARAMETERS)
-	public ResponseEntity<?> deleteFile(@PathVariable(required = true) String uuid, @PathVariable(required = true) String owner, HttpServletRequest request) {
+	@DeleteMapping(value = PARENT_PATH + "/" + PATH_UUID)
+	public ResponseEntity<?> deleteFile(@PathVariable(required = true) String uuid, HttpServletRequest request) {
+		RequestProperties rProp = new RequestProperties(request);
+		String owner = rProp.getUserId();
+		if (owner  == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
 		try {
 			checkParameters(uuid, owner);
 
-			RequestProperties rProp = new RequestProperties(request);
 			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed ROLE_DEVELOPER
 			if (!rProp.developerRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
@@ -363,16 +387,10 @@ public class FS_Controller {
 
 	// -------------------- Deployment requests methods functions --------------------
 
-	@GetMapping(value = PATH_DEPLOYMET_REQUEST + "/" + PATH_ID_PARAMETERS)
-	public ResponseEntity<?> getDeploymentRequests(
-			@PathVariable(required = true) String uuid,
-			@PathVariable(required = true) String owner,
-			@RequestParam(required = false) String site,
-			HttpServletRequest request) {
+	public ResponseEntity<?> getDeploymentRequests(String uuid, String owner, String site, RequestProperties rProp) {
 		try {
 			checkParameters(uuid, owner, site);
 
-			RequestProperties rProp = new RequestProperties(request);
 			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed ROLE_DEVELOPER
 			if (!rProp.developerRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
@@ -401,17 +419,38 @@ public class FS_Controller {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-
-	@PostMapping(value = PATH_DEPLOYMET_REQUEST + "/" + PATH_ID_PARAMETERS)
-	public ResponseEntity<?> addDeploymentRequests(
+	@GetMapping(value = PATH_DEPLOYMET_REQUEST + "/" + PATH_UUID_OWNER)
+	public ResponseEntity<?> getDeploymentRequests(
 			@PathVariable(required = true) String uuid,
 			@PathVariable(required = true) String owner,
+			@RequestParam(required = false) String site,
+			HttpServletRequest request) {
+		return getDeploymentRequests(uuid, owner, site, new RequestProperties(request));
+	}
+	@GetMapping(value = PATH_DEPLOYMET_REQUEST + "/" + PATH_UUID)
+	public ResponseEntity<?> getDeploymentRequests(
+			@PathVariable(required = true) String uuid,
+			@RequestParam(required = false) String site,
+			HttpServletRequest request) {
+		RequestProperties rProp = new RequestProperties(request);
+		String owner = rProp.getUserId();
+		if (owner  == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
+		return getDeploymentRequests(uuid, owner, site, rProp);
+	}
+
+	@PostMapping(value = PATH_DEPLOYMET_REQUEST + "/" + PATH_UUID)
+	public ResponseEntity<?> addDeploymentRequests(
+			@PathVariable(required = true) String uuid,
 			@RequestBody(required = true) String[] sites,
 			HttpServletRequest request) {
+		RequestProperties rProp = new RequestProperties(request);
+		String owner = rProp.getUserId();
+		if (owner  == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+
 		try {
 			checkParameters(uuid, owner, sites);
 
-			RequestProperties rProp = new RequestProperties(request);
 			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed ROLE_DEVELOPER
 			if (!rProp.developerRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);
@@ -432,7 +471,7 @@ public class FS_Controller {
 		}
 	}
 
-	@PutMapping(value = PATH_DEPLOYMET_REQUEST + "/deploy/" + PATH_ID_PARAMETERS)
+	@PutMapping(value = PATH_DEPLOYMET_REQUEST + "/deploy/" + PATH_UUID_OWNER)
 	public ResponseEntity<?> deployDeploymentRequest(
 			@PathVariable(required = true) String uuid,
 			@PathVariable(required = true) String owner,
@@ -461,15 +500,18 @@ public class FS_Controller {
 		}
 	}
 
-	@DeleteMapping(value = PATH_DEPLOYMET_REQUEST + "/" + PATH_ID_PARAMETERS)
-	public ResponseEntity<?> deleteDeploymentRequest(@PathVariable(required = true) String uuid,
-			@PathVariable(required = true) String owner,
+	@DeleteMapping(value = PATH_DEPLOYMET_REQUEST + "/" + PATH_UUID)
+	public ResponseEntity<?> deleteDeploymentRequest(
+			@PathVariable(required = true) String uuid,
 			@RequestParam(required = true) String site,
 			HttpServletRequest request) {
-		try {
-			checkParameters(null, owner, site);
+		RequestProperties rProp = new RequestProperties(request);
+		String owner = rProp.getUserId();
+		if (owner  == null) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
-			RequestProperties rProp = new RequestProperties(request);
+		try {
+			checkParameters(uuid, owner, site);
+
 			if (!rProp.authenticated) return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 			// Allowed ROLE_DEVELOPER
 			if (!rProp.developerRole) return new ResponseEntity<>(HttpStatus.FORBIDDEN);

@@ -7,12 +7,14 @@ import javax.servlet.http.HttpServletRequest;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
 import org.keycloak.representations.AccessToken;
+import org.springframework.http.HttpHeaders;
 
 import com.uc3m.fs.Config;
 import com.uc3m.fs.exceptions.KeycloakNotAuthenticated;
 
 public class RequestProperties {
 
+	private HttpServletRequest request;
 	private AccessToken accessToken;
 	public boolean managerRole, developerRole, authenticated;
 
@@ -25,6 +27,7 @@ public class RequestProperties {
 
 	public RequestProperties(HttpServletRequest request) {
 		try {
+			this.request = request;
 			accessToken = getAccessToken(request);
 			// If the AccessToken is created -> user authenticated on keycloak
 			authenticated = true;
@@ -36,9 +39,16 @@ public class RequestProperties {
 		}
 	}
 
+	/**
+	 * @return Id (email) of the user
+	 */
 	public String getUserId() {
 		if (!authenticated) return null;
 		return accessToken.getEmail();
+	}
+
+	public String getBearerToken() {
+		return request.getHeader(HttpHeaders.AUTHORIZATION);
 	}
 
 	public Set<String> getUserRoles() {
