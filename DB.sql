@@ -5,6 +5,13 @@ CREATE TABLE public.files (
 	PRIMARY KEY (uuid,owner)
 );
 
+
+DROP TABLE IF EXISTS public.sites;
+CREATE TABLE public.sites (
+	site VARCHAR NOT NULL,
+	PRIMARY KEY (site)
+);
+
 INSERT INTO public.sites VALUES
 	('FRANCE_NICE'),
 	('FRANCE_PARIS'),
@@ -12,13 +19,6 @@ INSERT INTO public.sites VALUES
 	('GREECE_ATHENS'),
 	('ITALY_TURIN'),
 	('SPAIN_5TONIC');
-
-
-DROP TABLE IF EXISTS public.sites;
-CREATE TABLE public.sites (
-	site VARCHAR NOT NULL,
-	PRIMARY KEY (site)
-);
 
 
 DROP TABLE IF EXISTS public.deployment_requests;
